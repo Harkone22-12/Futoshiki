@@ -1,6 +1,6 @@
 import heapq
 import time
-file_path = "Source/Inputs/input-07.txt"
+file_path = "Source/Inputs/input-10.txt"
 
 def read_input(file_path):
     with open(file_path, 'r') as f:
@@ -59,7 +59,7 @@ def solve_astar(initial_grid, n, h_cons, v_cons):
     tie_breaker = 0
     
     pq = []
-    heapq.heappush(pq, (g_cost + h_cost, g_cost, tie_breaker, initial_state))
+    heapq.heappush(pq, (g_cost + h_cost, -g_cost, tie_breaker, initial_state))
     visited = set()
     
     while pq:
@@ -101,7 +101,7 @@ def solve_astar(initial_grid, n, h_cons, v_cons):
                     new_g = g + 1
                     new_h = heuristic(next_grid, n)
                     tie_breaker += 1
-                    heapq.heappush(pq, (new_g + new_h, new_g, tie_breaker, next_state))
+                    heapq.heappush(pq, (new_g + new_h, -new_g, tie_breaker, next_state))
                     
     return False
 
