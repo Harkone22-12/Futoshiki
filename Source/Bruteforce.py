@@ -1,7 +1,7 @@
 import time
 import os
 
-# --- CÁC HÀM ĐỌC/IN DỮ LIỆU TỪ MÔI TRƯỜNG CỦA BẠN ---
+# Hàm đọc in dữ liệu từ envi
 def read_input(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         lines = [line.strip() for line in f.readlines() if line.strip() and not line.startswith('#')]
@@ -29,7 +29,7 @@ def print_output(n, grid, h_cons, v_cons):
                 else: v_str += "    "
             print(v_str.rstrip())
 
-# HÀM MỚI: LƯU KẾT QUẢ RA FILE
+# Lưu kết quả vào file
 def save_solution_to_file(output_path, n, grid, h_cons, v_cons):
     """Lưu lưới kết quả và các dấu bất đẳng thức ra file text."""
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -51,10 +51,6 @@ def save_solution_to_file(output_path, n, grid, h_cons, v_cons):
                     elif v_cons[i][j] == -1: v_str += "v   "
                     else: v_str += "    "
                 f.write(v_str.rstrip() + "\n")
-
-# ==========================================
-# THUẬT TOÁN BRUTE-FORCE (GENERATE AND TEST)
-# ==========================================
 
 def check_whole_grid(grid, n, h_cons, v_cons):
     """
@@ -89,7 +85,7 @@ def check_whole_grid(grid, n, h_cons, v_cons):
 
     return True
 
-# HÀM ĐƯỢC NÂNG CẤP: THÊM BIẾN ĐẾM NODE VÀ TRẢ VỀ TUPLE
+# Hàm thêm biến đếm node, trả về tuple
 def solve_bruteforce(grid, n, h_cons, v_cons, r=0, c=0, node_counter=None):
     """
     Hàm sinh mù quáng (Blind Generator): Điền bừa mọi tổ hợp có thể.
@@ -99,7 +95,7 @@ def solve_bruteforce(grid, n, h_cons, v_cons, r=0, c=0, node_counter=None):
         
     node_counter[0] += 1 # Tăng biến đếm mỗi khi mở 1 node (trạng thái) mới
 
-    # Base Case: Nếu đã duyệt qua hết tất cả các ô (tức là r = n), bảng đã đầy.
+    # Base Case: Nếu đã duyệt qua hết tất cả các ô (tức là r = n), bảng đã đầy
     if r == n:
         return check_whole_grid(grid, n, h_cons, v_cons), node_counter[0]
 
@@ -132,7 +128,7 @@ def solve_bruteforce(grid, n, h_cons, v_cons, r=0, c=0, node_counter=None):
 if __name__ == "__main__":
     input_file = "Source/Inputs/input-01.txt"  # Đổi đường dẫn file
     
-    # --- TỰ ĐỘNG SINH ĐƯỜNG DẪN OUTPUT ---
+    # Sinh dẫn output
     file_name = os.path.basename(input_file).replace("input", "output")
     output_file = os.path.join("Source", "Outputs", file_name)
     
@@ -142,7 +138,6 @@ if __name__ == "__main__":
         
         start_time = time.time()
         
-        # GỠ GÓI TUPLE KẾT QUẢ
         is_solved, nodes_expanded = solve_bruteforce(grid, n, h_cons, v_cons)
         
         if is_solved:
