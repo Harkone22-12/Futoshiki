@@ -1,5 +1,6 @@
 import time
-file_path = "Source/Inputs/input-10.txt"
+import os
+file_path = "Source/Inputs/input-01.txt"
 
 def read_input(file_path):
     with open(file_path, 'r') as f:
@@ -48,30 +49,83 @@ def is_valid(grid, n, r, c, val, h_cons, v_cons):
         
     return True
 
-def solve_backtracking(grid, n, h_cons, v_cons):
+# ĐÃ SỬA HÀM NÀY ĐỂ ĐẾM NODE CHUẨN XÁC:
+def solve_backtracking(grid, n, h_cons, v_cons, node_counter=None):
+    if node_counter is None:
+        node_counter = [0]
+        
+    node_counter[0] += 1 # Đếm số trạng thái đã duyệt (Nodes Expanded)
+
     for r in range(n):
         for c in range(n):
             if grid[r][c] == 0:
                 for val in range(1, n + 1):
+                    # Truyền đầy đủ tham số thay vì dùng dấu 3 chấm
                     if is_valid(grid, n, r, c, val, h_cons, v_cons):
                         grid[r][c] = val
-                        if solve_backtracking(grid, n, h_cons, v_cons):
-                            return True
+                        
+                        # Đi sâu vào nhánh con
+                        result = solve_backtracking(grid, n, h_cons, v_cons, node_counter)
+                        
+                        # Nếu nhánh con trả về True (giải thành công), thì thoát và báo True
+                        if result[0] == True:
+                            return True, node_counter[0]
+                            
+                        # Nếu nhánh sai, xóa số đi để quay lui (backtrack)
                         grid[r][c] = 0
-                return False
-    return True
+                        
+                # Đã thử từ 1->n mà không lọt được số nào -> Ngõ cụt, trả về False
+                return False, node_counter[0]
+                
+    # Nếu lặp hết bảng mà không thấy ô số 0 nào -> Đã giải xong
+    return True, node_counter[0]
+
+def save_solution_to_file(output_path, n, grid, h_cons, v_cons):
+    """Lưu lưới kết quả và các dấu bất đẳng thức ra file text."""
+    # Tự động tạo thư mục Outputs nếu nó chưa tồn tại
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    with open(output_path, 'w', encoding='utf-8') as f:
+        for i in range(n):
+            row_str = ""
+            for j in range(n):
+                row_str += str(grid[i][j]) if grid[i][j] != 0 else "."
+                if j < n - 1:
+                    if h_cons[i][j] == 1: row_str += " < "
+                    elif h_cons[i][j] == -1: row_str += " > "
+                    else: row_str += "   "
+            f.write(row_str + "\n")
+            
+            if i < n - 1:
+                v_str = ""
+                for j in range(n):
+                    if v_cons[i][j] == 1: v_str += "^   "
+                    elif v_cons[i][j] == -1: v_str += "v   "
+                    else: v_str += "    "
+                f.write(v_str.rstrip() + "\n")
 
 if __name__ == "__main__":
     input_file = file_path 
+
+    file_name = os.path.basename(input_file).replace("input", "output")
+    # Đặt file vào thư mục 'Outputs' (ngang hàng với 'Inputs')
+    output_file = os.path.join("Source", "Outputs", file_name)
+
     try:
         n, grid, h_cons, v_cons = read_input(input_file)
         print(f"--- Đang giải Futoshiki {n}x{n} bằng Backtracking ---")
         
         start_time = time.time()
-        if solve_backtracking(grid, n, h_cons, v_cons):
+        result = solve_backtracking(grid, n, h_cons, v_cons)
+        
+        if result[0] == True:
             print("\nKết quả:")
             print_output(n, grid, h_cons, v_cons)
             print(f"\nThời gian chạy: {time.time() - start_time:.4f}s")
+            print(f"Số Node đã mở rộng: {result[1]}")
+
+            save_solution_to_file(output_file, n, grid, h_cons, v_cons)
+            print(f"--> Đã lưu kết quả thành công vào: {output_file}")
         else:
             print("Không tìm thấy giải pháp.")
     except FileNotFoundError:
