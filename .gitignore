@@ -1,0 +1,17 @@
+# Bỏ qua file chạy chính để tránh conflict khi tích hợp (evaluation)
+main.py
+Source/Inputs/*
+
+# Bỏ qua các file cache của Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Bỏ qua thư mục môi trường ảo (nếu có dùng)
+venv/
+env/
+.env
+
+# Bỏ qua các file cấu hình IDE cá nhân (tuỳ chọn)
+.vscode/
+.idea/
