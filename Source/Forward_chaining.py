@@ -167,8 +167,34 @@ def print_solution(n, grid, env):
                 else: v_str += "    "
             print(v_str.rstrip())
 
+def save_solution_to_file(output_path, n, grid, env):
+    """Hàm lưu kết quả ra file text với đầy đủ định dạng."""
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    with open(output_path, 'w', encoding='utf-8') as f:
+        for i in range(n):
+            row_str = ""
+            for j in range(n):
+                row_str += str(grid[i][j]) if grid[i][j] != 0 else "."
+                if j < n - 1:
+                    if env.horiz_constraints[i][j] == 1: row_str += " < "
+                    elif env.horiz_constraints[i][j] == -1: row_str += " > "
+                    else: row_str += "   "
+            f.write(row_str + "\n")
+            
+            if i < n - 1:
+                v_str = ""
+                for j in range(n):
+                    if env.vert_constraints[i][j] == 1: v_str += "^   "
+                    elif env.vert_constraints[i][j] == -1: v_str += "v   "
+                    else: v_str += "    "
+                f.write(v_str.rstrip() + "\n")
+
 if __name__ == "__main__":
     input_file = r"Source/Inputs/input-11.txt" # Thay đổi file test ở đây
+
+    file_name = os.path.basename(input_file).replace("input", "output")
+    output_file = os.path.join("Source", "Outputs", file_name)
     
     try:
         env = load_env_from_file(input_file)
@@ -181,6 +207,9 @@ if __name__ == "__main__":
         if solution_grid:
             print(f"\n======= KẾT QUẢ TÌM THẤY TRONG {end_time - start_time:.4f}s =======")
             print_solution(env.n, solution_grid, env)
+
+            save_solution_to_file(output_file, env.n, solution_grid, env)
+            print(f"\n--> Đã lưu kết quả thành công vào: {output_file}")
         else:
             print(f"\n[Kết quả]: {message}")
 
