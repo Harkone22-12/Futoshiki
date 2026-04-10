@@ -4,6 +4,8 @@ import copy
 import os
 from futoshiki_env import FutoshikiEnv
 
+file_path = "Source/Inputs/input-01.txt"
+
 # ==========================================
 # 2. CLASS SINH LUẬT (KB GENERATOR) DÀNH CHO BÁO CÁO
 # ==========================================
@@ -304,7 +306,7 @@ def save_solution_to_file(output_path, n, grid, env):
                 f.write(v_str.rstrip() + "\n")
 
 if __name__ == "__main__":
-    input_file = "Source/Inputs/input-01.txt" # Đổi đường dẫn file nếu cần
+    input_file = file_path # Đổi đường dẫn file nếu cần
     
     # --- TỰ ĐỘNG SINH ĐƯỜNG DẪN OUTPUT ---
     # Lấy tên file gốc (vd: 'input-10.txt') và đổi chữ 'input' thành 'output'

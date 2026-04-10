@@ -3,6 +3,8 @@ import os
 from futoshiki_env import FutoshikiEnv
 from pysat.solvers import Glucose3
 
+file_path = "Source/Inputs/input-01.txt"
+
 # ==========================================
 # 2. CLASS SAT SOLVER (GIẢI BẰNG PURE LOGIC / CNF)
 # ==========================================
@@ -187,8 +189,7 @@ def save_solution_to_file(output_path, n, grid, env):
                 f.write(v_str.rstrip() + "\n")
 
 if __name__ == "__main__":
-    # Thay đổi đường dẫn file input ở đây
-    input_file = "Source/Inputs/input-10.txt"
+    input_file = file_path
     
     # --- TỰ ĐỘNG SINH ĐƯỜNG DẪN OUTPUT ---
     file_name = os.path.basename(input_file).replace("input", "output")

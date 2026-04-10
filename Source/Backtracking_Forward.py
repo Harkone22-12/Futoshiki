@@ -2,6 +2,8 @@ import time
 import os
 from futoshiki_env import FutoshikiEnv  # Import class môi trường chuẩn của bạn
 
+file_path = "Source/Inputs/input-01.txt"
+
 # ==========================================
 # 1. CLASS KNOWLEDGE BASE
 # ==========================================
@@ -210,7 +212,7 @@ def save_solution_to_file(output_path, n, grid, env):
 
 
 if __name__ == "__main__":
-    input_file = r"Source\Inputs\input-10.txt" # Sửa lại đường dẫn của bạn tại đây
+    input_file = file_path # Sửa lại đường dẫn của bạn tại đây
     
     file_name = os.path.basename(input_file).replace("input", "output")
     output_file = os.path.join("Source", "Outputs", file_name)
