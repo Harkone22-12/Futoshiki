@@ -1,4 +1,5 @@
 TOTAL CNF CLAUSES: 367
+# A1: Cell has at least one value
 (Val(1,1,1) ∨ Val(1,1,2) ∨ Val(1,1,3) ∨ Val(1,1,4))
 (Val(1,2,1) ∨ Val(1,2,2) ∨ Val(1,2,3) ∨ Val(1,2,4))
 (Val(1,3,1) ∨ Val(1,3,2) ∨ Val(1,3,3) ∨ Val(1,3,4))
@@ -15,6 +16,8 @@ TOTAL CNF CLAUSES: 367
 (Val(4,2,1) ∨ Val(4,2,2) ∨ Val(4,2,3) ∨ Val(4,2,4))
 (Val(4,3,1) ∨ Val(4,3,2) ∨ Val(4,3,3) ∨ Val(4,3,4))
 (Val(4,4,1) ∨ Val(4,4,2) ∨ Val(4,4,3) ∨ Val(4,4,4))
+
+# A2: Cell has at most one value
 (¬Val(1,1,1) ∨ ¬Val(1,1,2))
 (¬Val(1,1,1) ∨ ¬Val(1,1,3))
 (¬Val(1,1,1) ∨ ¬Val(1,1,4))
@@ -111,6 +114,8 @@ TOTAL CNF CLAUSES: 367
 (¬Val(4,4,2) ∨ ¬Val(4,4,3))
 (¬Val(4,4,2) ∨ ¬Val(4,4,4))
 (¬Val(4,4,3) ∨ ¬Val(4,4,4))
+
+# A3: Row Uniqueness
 (¬Val(1,1,1) ∨ ¬Val(1,2,1))
 (¬Val(1,1,1) ∨ ¬Val(1,3,1))
 (¬Val(1,1,1) ∨ ¬Val(1,4,1))
@@ -207,6 +212,8 @@ TOTAL CNF CLAUSES: 367
 (¬Val(4,2,4) ∨ ¬Val(4,3,4))
 (¬Val(4,2,4) ∨ ¬Val(4,4,4))
 (¬Val(4,3,4) ∨ ¬Val(4,4,4))
+
+# A4: Column Uniqueness
 (¬Val(1,1,1) ∨ ¬Val(2,1,1))
 (¬Val(1,1,1) ∨ ¬Val(3,1,1))
 (¬Val(1,1,1) ∨ ¬Val(4,1,1))
@@ -303,6 +310,8 @@ TOTAL CNF CLAUSES: 367
 (¬Val(2,4,4) ∨ ¬Val(3,4,4))
 (¬Val(2,4,4) ∨ ¬Val(4,4,4))
 (¬Val(3,4,4) ∨ ¬Val(4,4,4))
+
+# A5: Horizontal Less-than
 (¬Val(4,1,1) ∨ ¬Val(4,2,1))
 (¬Val(4,1,2) ∨ ¬Val(4,2,1))
 (¬Val(4,1,2) ∨ ¬Val(4,2,2))
@@ -313,6 +322,8 @@ TOTAL CNF CLAUSES: 367
 (¬Val(4,1,4) ∨ ¬Val(4,2,2))
 (¬Val(4,1,4) ∨ ¬Val(4,2,3))
 (¬Val(4,1,4) ∨ ¬Val(4,2,4))
+
+# A6: Vertical Less-than
 (¬Val(3,3,1) ∨ ¬Val(4,3,1))
 (¬Val(3,3,2) ∨ ¬Val(4,3,1))
 (¬Val(3,3,2) ∨ ¬Val(4,3,2))
@@ -333,6 +344,8 @@ TOTAL CNF CLAUSES: 367
 (¬Val(3,4,4) ∨ ¬Val(4,4,2))
 (¬Val(3,4,4) ∨ ¬Val(4,4,3))
 (¬Val(3,4,4) ∨ ¬Val(4,4,4))
+
+# A7: Horizontal Greater-than
 (¬Val(1,2,1) ∨ ¬Val(1,3,1))
 (¬Val(1,2,1) ∨ ¬Val(1,3,2))
 (¬Val(1,2,1) ∨ ¬Val(1,3,3))
@@ -353,6 +366,8 @@ TOTAL CNF CLAUSES: 367
 (¬Val(1,3,3) ∨ ¬Val(1,4,3))
 (¬Val(1,3,3) ∨ ¬Val(1,4,4))
 (¬Val(1,3,4) ∨ ¬Val(1,4,4))
+
+# A8: Vertical Greater-than
 (¬Val(2,4,1) ∨ ¬Val(3,4,1))
 (¬Val(2,4,1) ∨ ¬Val(3,4,2))
 (¬Val(2,4,1) ∨ ¬Val(3,4,3))
@@ -363,6 +378,10 @@ TOTAL CNF CLAUSES: 367
 (¬Val(2,4,3) ∨ ¬Val(3,4,3))
 (¬Val(2,4,3) ∨ ¬Val(3,4,4))
 (¬Val(2,4,4) ∨ ¬Val(3,4,4))
+
+# A9: Given Clues
 (Val(1,1,3))
 (Val(2,1,2))
 (Val(4,2,2))
+
+# A10: Domain Completeness (implicit)

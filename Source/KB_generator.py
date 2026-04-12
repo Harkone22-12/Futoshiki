@@ -282,8 +282,7 @@ class KBGenerator:
 
     def get_ground_kb(self):
         """
-        Trả về Knowledge Base CNF chỉ chứa các mệnh đề CNF (không chứa Facts).
-        Simplified output - chỉ kết quả CNF clauses.
+        Trả về Knowledge Base CNF chứa các mệnh đề CNF (có kèm comment phân loại).
         
         :return: String chứa CNF clauses
         """
@@ -291,13 +290,14 @@ class KBGenerator:
         
         kb_text = ""
         
-        # === CNF CLAUSES (bỏ comments) ===
-        clause_lines = [c for c in grounded_axioms if not c.startswith("#")]
-        kb_text += f"Total CNF Clauses: {len(clause_lines)}\n"
+        # === Đếm số mệnh đề thực sự (bỏ comment và dòng trống) ===
+        actual_clauses = [c for c in grounded_axioms if not c.strip().startswith("#") and c.strip()]
+        kb_text += f"Total CNF Clauses: {len(actual_clauses)}\n"
         kb_text += "\n"
         
-        for clause in clause_lines:
-            kb_text += f"{clause}\n"
+        # Ghi toàn bộ nội dung gồm cả comment ra file
+        for line in grounded_axioms:
+            kb_text += f"{line}\n"
         
         return kb_text
 
@@ -333,9 +333,12 @@ if __name__ == "__main__":
         # Load KB from input file (quietly)
         kb_gen = KBGenerator.load_from_file(input_file)
         
+        # Lấy tên file gốc (ví dụ: 'input-01')
+        base_name = os.path.basename(input_file).replace('.txt', '')
+        
         # Save FOL KB (full knowledge base with axioms)
         full_kb = kb_gen.get_full_kb()
-        ground_output_path = os.path.join("Source", "Outputs", "ground_kb_input01.txt")
+        ground_output_path = os.path.join("Source", "Outputs", f"ground_kb_{base_name}.txt")
         os.makedirs(os.path.dirname(ground_output_path), exist_ok=True)
         with open(ground_output_path, 'w', encoding='utf-8') as f:
             f.write(full_kb)
@@ -344,7 +347,7 @@ if __name__ == "__main__":
         
         # Save CNF/Grounded KB (with CNF clauses)
         cnf_kb = kb_gen.get_ground_kb()
-        output_path = os.path.join("Source", "Outputs", "KB_ground_CNF_input01.txt")
+        output_path = os.path.join("Source", "Outputs", f"KB_ground_CNF_{base_name}.txt")
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(cnf_kb)

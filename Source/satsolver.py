@@ -78,14 +78,16 @@ class FutoshikiSATSolver:
         thay vì xây dựng chúng một cách thủ công.
         """
         self.cnf_strings.clear()
+        self.log_strings = [] # Dùng để lưu trữ cả các dòng comment A1, A2,... để in log
         
         # Generate ground axioms từ KB Generator
         grounded_axioms = self.kb_gen.ground_axioms()
         
         # Parse và add từng clause vào solver
         for clause_str in grounded_axioms:
-            # Bỏ qua comment lines và empty lines
-            if clause_str.startswith("#") or not clause_str.strip():
+            # Bỏ qua comment lines và empty lines NHƯNG giữ lại trong log
+            if clause_str.strip().startswith("#") or not clause_str.strip():
+                self.log_strings.append(clause_str)
                 continue
             
             # Convert string clause to integer clause
@@ -93,6 +95,7 @@ class FutoshikiSATSolver:
             if clause:  # Nếu clause không rỗng
                 self.solver.add_clause(clause)
                 self.cnf_strings.append(clause_str)
+                self.log_strings.append(clause_str)
 
     def solve(self):
         """Kích hoạt SAT Solver và dịch mảng kết quả thành Grid."""
@@ -207,10 +210,12 @@ if __name__ == "__main__":
         print(f"[+] SAT Solver created {total_clauses} CNF clauses.")
 
         os.makedirs("Source/Outputs", exist_ok=True)
-        with open("Source/Outputs/cnf_clauses_log.txt", "w", encoding="utf-8") as f:
+        base_name = os.path.basename(input_file).replace('.txt', '')
+        log_file = os.path.join("Source", "Outputs", f"cnf_clauses_log_{base_name}.txt")
+        with open(log_file, "w", encoding="utf-8") as f:
             f.write(f"TOTAL CNF CLAUSES: {total_clauses}\n")
-            f.write("\n".join(sat_solver.cnf_strings))
-        print("[+] Saved CNF clauses to 'Source/Outputs/cnf_clauses_log.txt'")
+            f.write("\n".join(sat_solver.log_strings))
+        print(f"[+] Saved CNF clauses to '{log_file}'")
         
         start_time = time.time()
         
