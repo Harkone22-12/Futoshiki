@@ -4,6 +4,7 @@ import queue as std_queue
 import multiprocessing as mp
 import csv
 import re
+import tracemalloc
 from datetime import datetime
 from pathlib import Path
 import tkinter as tk
@@ -27,6 +28,7 @@ from Astar_mbdt import solve_astar_mbdt
 from Astar_mbdt_Forward import solve_astar_mac_mbdt
 from Astar_mrc import solve_astar_mrc
 from Astar_mrc_Forward import solve_astar_mac_mrc
+from chart_report import ChartReportController
 
 try:
     from satsolver import FutoshikiSATSolver
@@ -40,6 +42,20 @@ INPUTS_DIR = BASE_DIR / "Inputs"
 OUTPUTS_DIR = BASE_DIR / "Outputs"
 RUN_LOG_FILE = OUTPUTS_DIR / "solve-log.csv"
 SOLVER_TIMEOUT_SEC = 120
+RUN_LOG_HEADER = [
+    "timestamp",
+    "input_file",
+    "size",
+    "algorithm",
+    "heuristic",
+    "fc_prune",
+    "status",
+    "elapsed_sec",
+    "nodes",
+    "peak_memory_mb",
+    "output_file",
+    "note",
+]
 
 # ── Palette ───────────────────────────────────────────────────────────────────
 P = {
@@ -152,77 +168,90 @@ def solve_payload(path, algo, heur, fc):
     sol = None
     nodes = "N/A"
     note = ""
+    peak_bytes = 0
 
-    if algo == "A* Search":
-        if fc:
-            fns = {
-                "AC3": solve_astar_mac_ac3,
-                "MBDT": solve_astar_mac_mbdt,
-                "MRC": solve_astar_mac_mrc,
-            }
-            sol, nodes = fns[heur](env)
-            solved = sol is not None
-        else:
+    tracemalloc.start()
+    try:
+        if algo == "A* Search":
+            if fc:
+                fns = {
+                    "AC3": solve_astar_mac_ac3,
+                    "MBDT": solve_astar_mac_mbdt,
+                    "MRC": solve_astar_mac_mrc,
+                }
+                sol, nodes = fns[heur](env)
+                solved = sol is not None
+            else:
+                g = clone_grid(env.grid)
+                fns = {
+                    "AC3": solve_astar_ac3,
+                    "MBDT": solve_astar_mbdt,
+                    "MRC": solve_astar_mrc,
+                }
+                res = fns[heur](g, env.n, env.horiz_constraints, env.vert_constraints)
+                rep = bool(res[0]) if isinstance(res, tuple) else False
+                nodes = res[1] if isinstance(res, tuple) else "N/A"
+                solved = rep or complete(g)
+                sol = g if solved else None
+
+        elif algo == "Backtracking":
             g = clone_grid(env.grid)
-            fns = {
-                "AC3": solve_astar_ac3,
-                "MBDT": solve_astar_mbdt,
-                "MRC": solve_astar_mrc,
-            }
-            res = fns[heur](g, env.n, env.horiz_constraints, env.vert_constraints)
-            rep = bool(res[0]) if isinstance(res, tuple) else False
-            nodes = res[1] if isinstance(res, tuple) else "N/A"
-            solved = rep or complete(g)
+            solved, nodes = solve_backtracking(g, env.n, env.horiz_constraints, env.vert_constraints)
             sol = g if solved else None
 
-    elif algo == "Backtracking":
-        g = clone_grid(env.grid)
-        solved, nodes = solve_backtracking(g, env.n, env.horiz_constraints, env.vert_constraints)
-        sol = g if solved else None
+        elif algo == "Backtracking + Forward Chaining":
+            kb = KBBacktracking(env.n)
+            for r in range(env.n):
+                for c in range(env.n):
+                    v = env.grid[r][c]
+                    if v:
+                        kb.domains[r][c] = {v}
+                        kb.facts.append((r, c, v))
+            if FCBacktracking(kb, env).execute():
+                res = solve_with_bfc(kb, env)
+                if isinstance(res, tuple) and len(res) >= 2:
+                    sol, nodes = res
+                    solved = sol is not None
+            else:
+                note = "Forward chaining found a contradiction."
 
-    elif algo == "Backtracking + Forward Chaining":
-        kb = KBBacktracking(env.n)
-        for r in range(env.n):
-            for c in range(env.n):
-                v = env.grid[r][c]
-                if v:
-                    kb.domains[r][c] = {v}
-                    kb.facts.append((r, c, v))
-        if FCBacktracking(kb, env).execute():
-            res = solve_with_bfc(kb, env)
-            if isinstance(res, tuple) and len(res) >= 2:
-                sol, nodes = res
-                solved = sol is not None
+        elif algo == "Brute Force":
+            g = clone_grid(env.grid)
+            solved, nodes = solve_bruteforce(g, env.n, env.horiz_constraints, env.vert_constraints)
+            sol = g if solved else None
+
+        elif algo == "Pure Forward Chaining":
+            sol, note = solve_pure_fc(env)
+            solved = sol is not None
+
+        elif algo == "Backward Chaining (SLD)":
+            sld = SLDResolutionEngine(env)
+            solved = sld.prove_board()
+            nodes = sld.nodes_expanded
+            sol = sld.grid if solved else None
+
+        elif algo == "SAT Solver":
+            if not SAT_AVAILABLE:
+                raise RuntimeError("Install python-sat to enable SAT Solver.")
+            s = FutoshikiSATSolver(env)
+            sol, nodes = s.solve()
+            solved = sol is not None
+            note = f"CNF clauses: {len(s.cnf_strings)}"
+
         else:
-            note = "Forward chaining found a contradiction."
-
-    elif algo == "Brute Force":
-        g = clone_grid(env.grid)
-        solved, nodes = solve_bruteforce(g, env.n, env.horiz_constraints, env.vert_constraints)
-        sol = g if solved else None
-
-    elif algo == "Pure Forward Chaining":
-        sol, note = solve_pure_fc(env)
-        solved = sol is not None
-
-    elif algo == "Backward Chaining (SLD)":
-        sld = SLDResolutionEngine(env)
-        solved = sld.prove_board()
-        nodes = sld.nodes_expanded
-        sol = sld.grid if solved else None
-
-    elif algo == "SAT Solver":
-        if not SAT_AVAILABLE:
-            raise RuntimeError("Install python-sat to enable SAT Solver.")
-        s = FutoshikiSATSolver(env)
-        sol, nodes = s.solve()
-        solved = sol is not None
-        note = f"CNF clauses: {len(s.cnf_strings)}"
-
-    else:
-        raise RuntimeError(f"Unknown: {algo}")
+            raise RuntimeError(f"Unknown: {algo}")
+    finally:
+        try:
+            _, peak_bytes = tracemalloc.get_traced_memory()
+        except Exception:
+            peak_bytes = 0
+        try:
+            tracemalloc.stop()
+        except Exception:
+            pass
 
     elapsed = time.perf_counter() - t0
+    peak_memory_mb = peak_bytes / (1024 * 1024)
     return {
         "file": path.name,
         "n": env.n,
@@ -232,6 +261,7 @@ def solve_payload(path, algo, heur, fc):
         "solved": solved,
         "nodes": nodes,
         "elapsed": elapsed,
+        "peak_memory_mb": round(peak_memory_mb, 4),
         "note": note,
         "sol": clone_grid(sol if solved else env.grid),
         "hc": [r[:] for r in env.horiz_constraints],
@@ -438,6 +468,14 @@ class MainApp:
         self.v_note    = tk.StringVar(value="Select a puzzle and press Run")
         self.v_caption = tk.StringVar(value="")
         self.v_solving = tk.StringVar(value="")
+        self.chart_controller = ChartReportController(
+            root=self.root,
+            palette=P,
+            ui_font=UI,
+            outputs_dir=OUTPUTS_DIR,
+            run_log_file=RUN_LOG_FILE,
+            note_setter=self.v_note.set,
+        )
 
         self._board_data  = None
         self._given_cells = set()
@@ -591,6 +629,14 @@ class MainApp:
         self.run_btn.grid(row=r, column=0, sticky="ew", padx=16, pady=(0, 16))
         r += 1
 
+        self.chart_btn = RunButton(sb, text="Show Charts", command=self.show_charts)
+        self.chart_btn.grid(row=r, column=0, sticky="ew", padx=16, pady=(0, 12))
+        r += 1
+
+        self.clear_btn = RunButton(sb, text="Clear Log + Output", command=self.clear_logs_and_outputs)
+        self.clear_btn.grid(row=r, column=0, sticky="ew", padx=16, pady=(0, 12))
+        r += 1
+
         self.solve_anim_lbl = tk.Label(
             sb,
             textvariable=self.v_solving,
@@ -629,33 +675,63 @@ class MainApp:
         else:
             self.v_input.set("(no files found)")
 
-    def _append_run_log(self, *, input_file, size, algo, heur, fc, status,
-                        elapsed, nodes, output_file, note):
-        OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
-        header = [
-            "timestamp", "input_file", "size", "algorithm", "heuristic",
-            "fc_prune", "status", "elapsed_sec", "nodes", "output_file", "note"
-        ]
-        row = [
-            datetime.now().isoformat(timespec="seconds"),
-            input_file,
-            size,
-            algo,
-            heur,
-            "yes" if fc else "no",
-            status,
-            f"{elapsed:.4f}" if isinstance(elapsed, (int, float)) else str(elapsed),
-            str(nodes),
-            output_file,
-            str(note).replace("\n", " ").strip(),
-        ]
+    def _ensure_run_log_schema(self):
+        if not RUN_LOG_FILE.exists():
+            return
 
-        need_header = not RUN_LOG_FILE.exists()
+        try:
+            with open(RUN_LOG_FILE, "r", newline="", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                existing_header = reader.fieldnames or []
+                if existing_header == RUN_LOG_HEADER:
+                    return
+                existing_rows = list(reader)
+        except Exception:
+            return
+
+        with open(RUN_LOG_FILE, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=RUN_LOG_HEADER)
+            writer.writeheader()
+            for old_row in existing_rows:
+                migrated = {key: old_row.get(key, "") for key in RUN_LOG_HEADER}
+                if not migrated["peak_memory_mb"]:
+                    migrated["peak_memory_mb"] = old_row.get("memory_mb", "")
+                writer.writerow(migrated)
+
+    def _append_run_log(self, *, input_file, size, algo, heur, fc, status,
+                        elapsed, nodes, peak_memory_mb, output_file, note):
+        OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+        self._ensure_run_log_schema()
+
+        if isinstance(peak_memory_mb, (int, float)):
+            peak_mem_text = f"{peak_memory_mb:.4f}"
+        elif peak_memory_mb in (None, ""):
+            peak_mem_text = ""
+        else:
+            peak_mem_text = str(peak_memory_mb)
+
+        row = {
+            "timestamp": datetime.now().isoformat(timespec="seconds"),
+            "input_file": input_file,
+            "size": size,
+            "algorithm": algo,
+            "heuristic": heur,
+            "fc_prune": "yes" if fc else "no",
+            "status": status,
+            "elapsed_sec": f"{elapsed:.4f}" if isinstance(elapsed, (int, float)) else str(elapsed),
+            "nodes": str(nodes),
+            "peak_memory_mb": peak_mem_text,
+            "output_file": output_file,
+            "note": str(note).replace("\n", " ").strip(),
+        }
+
+        need_header = (not RUN_LOG_FILE.exists()) or (RUN_LOG_FILE.stat().st_size == 0)
         with open(RUN_LOG_FILE, "a", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
+            writer = csv.DictWriter(f, fieldnames=RUN_LOG_HEADER)
             if need_header:
-                writer.writerow(header)
+                writer.writeheader()
             writer.writerow(row)
+        self.chart_controller.on_log_data_changed()
 
     def _log_from_payload(self, status, elapsed, note):
         payload = self._active_payload or {}
@@ -677,6 +753,7 @@ class MainApp:
             status=status,
             elapsed=elapsed,
             nodes="N/A",
+            peak_memory_mb="",
             output_file="",
             note=note,
         )
@@ -694,6 +771,15 @@ class MainApp:
 
     def _on_algo(self): self._sync_astar()
 
+    def show_charts(self):
+        self.chart_controller.show_charts()
+
+    def clear_logs_and_outputs(self):
+        self.chart_controller.clear_log_and_outputs()
+
+    def _close_chart_window(self):
+        self.chart_controller.close_window()
+
     def _set_busy(self, busy):
         self._busy = bool(busy)
         if busy:
@@ -703,6 +789,8 @@ class MainApp:
         self.dd_input.enable(not busy)
         self.dd_algo.enable(not busy)
         self.run_btn.enable(not busy)
+        self.chart_btn.enable(not busy)
+        self.clear_btn.enable(not busy)
         self._sync_astar()
         if busy:
             self._start_solving_animation()
@@ -1008,6 +1096,10 @@ class MainApp:
             except Exception as ex:
                 note_text = f"{note_text}  ·  Save failed: {ex}"
 
+        peak_memory_mb = res.get("peak_memory_mb")
+        if isinstance(peak_memory_mb, (int, float)):
+            note_text = f"{note_text}  ·  Peak memory: {peak_memory_mb:.2f} MB"
+
         note_text = f"{note_text}  ·  Log: {RUN_LOG_FILE.name}"
 
         self.v_note.set(note_text)
@@ -1021,9 +1113,13 @@ class MainApp:
             status="solved" if res["solved"] else "failed",
             elapsed=res["elapsed"],
             nodes=res["nodes"],
+            peak_memory_mb=res.get("peak_memory_mb", ""),
             output_file=output_file_name,
             note=note_text,
         )
+
+        if res["solved"]:
+            self.chart_controller.record_success(res)
 
         # Store this solution as the new "previous"
         self._prev_sol  = clone_grid(new_sol)
@@ -1046,6 +1142,7 @@ def main():
     def _on_close():
         try:
             app._terminate_worker()
+            app._close_chart_window()
         finally:
             root.destroy()
 

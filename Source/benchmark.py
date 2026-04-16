@@ -1,223 +1,327 @@
-import os
-import time
+import argparse
 import csv
+import json
+import subprocess
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
 
-# --- IMPORT MÔI TRƯỜNG ---
-from futoshiki_env import FutoshikiEnv
+from main import SAT_AVAILABLE, load_env_from_file
 
-# --- IMPORT CÁC THUẬT TOÁN ĐÃ ĐƯỢC CHUẨN HÓA ---
-from satsolver import FutoshikiSATSolver
-from Bruteforce import solve_bruteforce
-from Backtracking import solve_backtracking
-from Backtracking_Forward import solve_with_bfc, KnowledgeBase as KB_BTF, ForwardChaining as FC_BTF
-from Backward_chaining import SLDResolutionEngine
-from Forward_chaining import solve_pure_fc
+BASE_DIR = Path(__file__).resolve().parent
+INPUTS_DIR = BASE_DIR / "Inputs"
+OUTPUTS_DIR = BASE_DIR / "Outputs"
+BENCHMARK_FILE = OUTPUTS_DIR / "benchmark-results.csv"
+SAT_SOLVER_FILE = BASE_DIR / "satsolver.py"
+BRUTE_FORCE_LABEL = "Brute Force"
 
-# Import 3 biến thể A* Pure
-from Astar_ac3 import solve_astar_ac3
-from Astar_mbdt import solve_astar_mbdt
-from Astar_mrc import solve_astar_mrc
+BENCHMARK_HEADER = [
+    "timestamp",
+    "input_file",
+    "size",
+    "algorithm_variant",
+    "algorithm",
+    "heuristic",
+    "fc_prune",
+    "status",
+    "elapsed_sec",
+    "nodes",
+    "peak_memory_mb",
+    "note",
+]
 
-# Import 3 biến thể A* + Forward Chaining (MAC)
-from Astar_ac3_Forward import solve_astar_mac_ac3
-from Astar_mbdt_Forward import solve_astar_mac_mbdt
-from Astar_mrc_Forward import solve_astar_mac_mrc
 
-
-def load_env_from_file(file_path):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        lines = [line.strip() for line in f.readlines() if line.strip() and not line.startswith('#')]
-    n = int(lines[0])
-    env = FutoshikiEnv(n)
-    
-    for i in range(1, n + 1):
-        row_vals = [int(x) for x in lines[i].split(',')]
-        for j in range(n):
-            if row_vals[j] != 0:
-                env.set_given_value(i-1, j, row_vals[j])
-                
-    for i in range(n + 1, 2 * n + 1):
-        row_vals = [int(x) for x in lines[i].split(',')]
-        for j in range(n-1):
-            if row_vals[j] != 0:
-                env.add_horizontal_constraint(i - (n + 1), j, row_vals[j])
-                
-    for i in range(2 * n + 1, 3 * n):
-        row_vals = [int(x) for x in lines[i].split(',')]
-        for j in range(n):
-            if row_vals[j] != 0:
-                env.add_vertical_constraint(i - (2 * n + 1), j, row_vals[j])
-    return env
-
-def extract_nodes(res):
-    """
-    Hàm helper: Cố gắng lấy số Node từ kết quả trả về của thuật toán.
-    Giả định thuật toán trả về dạng tuple: (solution/bool, nodes_expanded)
-    """
-    if isinstance(res, tuple) and len(res) >= 2 and isinstance(res[1], int):
-        return res[1]
-    return "N/A"
-
-def run_benchmark():
-    input_folder = "Source/Inputs" 
-    output_folder = "Source/Benchmarks"
-    os.makedirs(output_folder, exist_ok=True)
-    output_csv = os.path.join(output_folder, "benchmark_results_full.csv")
-
-    files = [f for f in os.listdir(input_folder) if f.startswith("input") and f.endswith(".txt")]
-    files.sort()
-
-    results = []
-
-    print(f"BẮT ĐẦU CHẠY BENCHMARK TOÀN DIỆN TRÊN {len(files)} FILE...")
-    print("Cảnh báo: Quá trình này có thể mất vài phút. Vui lòng kiên nhẫn đợi!")
-    print("-" * 80)
-
-    for filename in files:
-        file_path = os.path.join(input_folder, filename)
-        env = load_env_from_file(file_path)
-        n = env.n
-        print(f"Đang xử lý: {filename} (Size: {n}x{n})")
-
-        row_data = {"File": filename, "Size": f"{n}x{n}"}
-
-        # 1. BRUTE FORCE
-        if n >= 4:
-            row_data["BruteForce (s)"] = "Timeout"
-            row_data["Nodes BruteForce"] = "N/A"
-        else:
-            env_bf = load_env_from_file(file_path)
-            st = time.time()
-            res = solve_bruteforce(env_bf.grid, n, env_bf.horiz_constraints, env_bf.vert_constraints)
-            row_data["BruteForce (s)"] = round(time.time() - st, 4)
-            row_data["Nodes BruteForce"] = extract_nodes(res)
-
-        # 2. BACKTRACKING PURE
-        if n >= 8:
-            row_data["Backtrack Pure (s)"] = "Timeout"
-            row_data["Nodes Backtrack Pure"] = "N/A"
-        else:
-            env_bt = load_env_from_file(file_path)
-            st = time.time()
-            res = solve_backtracking(env_bt.grid, n, env_bt.horiz_constraints, env_bt.vert_constraints)
-            row_data["Backtrack Pure (s)"] = round(time.time() - st, 4)
-            row_data["Nodes Backtrack Pure"] = extract_nodes(res)
-
-        # 3. BACKTRACKING + FORWARD CHAINING
-        env_btf = load_env_from_file(file_path)
-        kb_btf = KB_BTF(n)
-        for r in range(n):
-            for c in range(n):
-                if env_btf.grid[r][c] != 0:
-                    kb_btf.domains[r][c] = {env_btf.grid[r][c]}
-                    kb_btf.facts.append((r, c, env_btf.grid[r][c]))
-        st = time.time()
-        fc_init = FC_BTF(kb_btf, env_btf)
-        if fc_init.execute():
-            res = solve_with_bfc(kb_btf, env_btf) 
-            row_data["Nodes Backtrack+FC"] = extract_nodes(res)
-        else:
-            row_data["Nodes Backtrack+FC"] = "N/A"
-        row_data["Backtrack+FC (s)"] = round(time.time() - st, 4)
-
-        # 4. BACKWARD CHAINING (SLD)
-        if n >= 9:
-            row_data["Backward Chaining (s)"] = "Timeout"
-            row_data["Nodes Backward"] = "N/A"
-        else:
-            env_bw = load_env_from_file(file_path)
-            sld = SLDResolutionEngine(env_bw)
-            st = time.time()
-            sld.prove_board() # Nếu bạn có đếm node trong class này, hãy trích xuất ở đây
-            row_data["Backward Chaining (s)"] = round(time.time() - st, 4)
-            row_data["Nodes Backward"] = getattr(sld, 'nodes_expanded', "N/A")
-
-        # 5. PURE FORWARD CHAINING (Không rẽ nhánh nên số Node = 0 hoặc N/A)
-        env_fc = load_env_from_file(file_path)
-        st = time.time()
-        solve_pure_fc(env_fc)
-        row_data["Pure FC (s)"] = round(time.time() - st, 4)
-
-        # 6. ASTAR PURE VARIANTS
-        if n >= 9:
-            row_data["A* AC3 (s)"] = row_data["A* MBDT (s)"] = row_data["A* MRC (s)"] = "Timeout"
-            row_data["Nodes AC3"] = row_data["Nodes MBDT"] = row_data["Nodes MRC"] = "N/A"
-        else:
-            env_a = load_env_from_file(file_path)
-            st = time.time()
-            res_a = solve_astar_ac3(env_a.grid, n, env_a.horiz_constraints, env_a.vert_constraints)
-            row_data["A* AC3 (s)"] = round(time.time() - st, 4)
-            row_data["Nodes AC3"] = extract_nodes(res_a)
-            
-            env_b = load_env_from_file(file_path)
-            st = time.time()
-            res_b = solve_astar_mbdt(env_b.grid, n, env_b.horiz_constraints, env_b.vert_constraints)
-            row_data["A* MBDT (s)"] = round(time.time() - st, 4)
-            row_data["Nodes MBDT"] = extract_nodes(res_b)
-            
-            env_c = load_env_from_file(file_path)
-            st = time.time()
-            res_c = solve_astar_mrc(env_c.grid, n, env_c.horiz_constraints, env_c.vert_constraints)
-            row_data["A* MRC (s)"] = round(time.time() - st, 4)
-            row_data["Nodes MRC"] = extract_nodes(res_c)
-
-        # 7. ASTAR + MAC VARIANTS
-        env_mac_ac3 = load_env_from_file(file_path)
-        st = time.time()
-        _, nd_ac3 = solve_astar_mac_ac3(env_mac_ac3)
-        row_data["A* MAC AC3 (s)"] = round(time.time() - st, 4)
-        row_data["Nodes MAC AC3"] = nd_ac3
-        
-        env_mac_mbdt = load_env_from_file(file_path)
-        st = time.time()
-        _, nd_mbdt = solve_astar_mac_mbdt(env_mac_mbdt)
-        row_data["A* MAC MBDT (s)"] = round(time.time() - st, 4)
-        row_data["Nodes MAC MBDT"] = nd_mbdt
-        
-        env_mac_mrc = load_env_from_file(file_path)
-        st = time.time()
-        _, nd_mrc = solve_astar_mac_mrc(env_mac_mrc)
-        row_data["A* MAC MRC (s)"] = round(time.time() - st, 4)
-        row_data["Nodes MAC MRC"] = nd_mrc
-
-        # 8. SAT SOLVER
-        sat = FutoshikiSATSolver(load_env_from_file(file_path))
-        st = time.time()
-        solution, decisions = sat.solve() 
-        
-        row_data["SAT (s)"] = round(time.time() - st, 4)
-        row_data["Nodes SAT (Decisions)"] = decisions # Lưu số Node vào row_data
-        row_data["SAT Clauses"] = len(sat.cnf_strings) if hasattr(sat, 'cnf_strings') else "N/A"
-
-        results.append(row_data)
-
-    # --- XUẤT RA FILE CSV ---
-    print("\nĐANG XUẤT DỮ LIỆU RA FILE CSV...")
-    
-    # Định nghĩa cấu trúc cột (Đã bổ sung các cột Nodes)
-    fieldnames = [
-        "File", "Size", 
-        "BruteForce (s)", "Nodes BruteForce",
-        "Backtrack Pure (s)", "Nodes Backtrack Pure", 
-        "Backtrack+FC (s)", "Nodes Backtrack+FC",
-        "Backward Chaining (s)", "Nodes Backward", 
-        "Pure FC (s)", 
-        "A* AC3 (s)", "Nodes AC3", 
-        "A* MBDT (s)", "Nodes MBDT", 
-        "A* MRC (s)", "Nodes MRC",
-        "A* MAC AC3 (s)", "Nodes MAC AC3", 
-        "A* MAC MBDT (s)", "Nodes MAC MBDT", 
-        "A* MAC MRC (s)", "Nodes MAC MRC",
-        "SAT (s)", "Nodes SAT (Decisions)", "SAT Clauses"
+def build_algorithm_matrix(*, include_sat=True, include_bruteforce=True):
+    matrix = [
+        {"label": BRUTE_FORCE_LABEL, "algo": BRUTE_FORCE_LABEL, "heur": "", "fc": False},
+        {"label": "Backtracking", "algo": "Backtracking", "heur": "", "fc": False},
+        {
+            "label": "Backtracking + Forward Chaining",
+            "algo": "Backtracking + Forward Chaining",
+            "heur": "",
+            "fc": False,
+        },
+        {"label": "Pure Forward Chaining", "algo": "Pure Forward Chaining", "heur": "", "fc": False},
+        {
+            "label": "Backward Chaining (SLD)",
+            "algo": "Backward Chaining (SLD)",
+            "heur": "",
+            "fc": False,
+        },
+        {"label": "A* AC3", "algo": "A* Search", "heur": "AC3", "fc": False},
+        {"label": "A* MBDT", "algo": "A* Search", "heur": "MBDT", "fc": False},
+        {"label": "A* MRC", "algo": "A* Search", "heur": "MRC", "fc": False},
+        {"label": "A* AC3 + MAC", "algo": "A* Search", "heur": "AC3", "fc": True},
+        {"label": "A* MBDT + MAC", "algo": "A* Search", "heur": "MBDT", "fc": True},
+        {"label": "A* MRC + MAC", "algo": "A* Search", "heur": "MRC", "fc": True},
     ]
-    
-    with open(output_csv, "w", newline="", encoding="utf-8") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        for row in results:
-            writer.writerow(row)
 
-    print(f"🎉 HOÀN TẤT! Đã lưu báo cáo tại: {output_csv}")
+    if not include_bruteforce:
+        matrix = [case for case in matrix if case["algo"] != BRUTE_FORCE_LABEL]
+
+    if include_sat and SAT_SOLVER_FILE.exists():
+        matrix.append({"label": "SAT Solver", "algo": "SAT Solver", "heur": "", "fc": False})
+
+    return matrix
+
+
+def collect_inputs(limit=10):
+    return sorted(INPUTS_DIR.glob("input-*.txt"))[:limit]
+
+
+def _as_elapsed_text(value):
+    if isinstance(value, (int, float)):
+        return f"{value:.4f}"
+    return str(value)
+
+
+def _as_memory_text(value):
+    if isinstance(value, (int, float)):
+        return f"{value:.4f}"
+    return ""
+
+
+def _extract_json_packet(stdout_text):
+    lines = [ln.strip() for ln in str(stdout_text).splitlines() if ln.strip()]
+    for line in reversed(lines):
+        if not (line.startswith("{") and line.endswith("}")):
+            continue
+        try:
+            return json.loads(line)
+        except Exception:
+            continue
+    return None
+
+
+def _stderr_tail(stderr_text):
+    lines = [ln.strip() for ln in str(stderr_text).splitlines() if ln.strip()]
+    if not lines:
+        return ""
+    return lines[-1]
+
+
+def run_case(payload, timeout_sec=300.0):
+    started = time.perf_counter()
+    worker_path = BASE_DIR / "benchmark_worker.py"
+    command = [
+        sys.executable,
+        str(worker_path),
+        "--path",
+        str(payload["path"]),
+        "--algo",
+        str(payload["algo"]),
+        "--heur",
+        str(payload["heur"]),
+        "--fc",
+        "1" if payload["fc"] else "0",
+    ]
+
+    try:
+        proc = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            timeout=(None if timeout_sec <= 0 else timeout_sec),
+        )
+    except subprocess.TimeoutExpired:
+        elapsed = time.perf_counter() - started
+        return {
+            "status": "timeout",
+            "elapsed": elapsed,
+            "nodes": "N/A",
+            "peak_memory_mb": "",
+            "note": f"Timed out after {timeout_sec:.1f}s",
+        }
+
+    packet = _extract_json_packet(proc.stdout)
+    if not isinstance(packet, dict):
+        elapsed = time.perf_counter() - started
+        err_tail = _stderr_tail(proc.stderr)
+        note = "Worker produced no parseable JSON output"
+        if err_tail:
+            note = f"{note}: {err_tail}"
+        return {
+            "status": "error",
+            "elapsed": elapsed,
+            "nodes": "N/A",
+            "peak_memory_mb": "",
+            "note": note,
+        }
+
+    if not packet.get("ok"):
+        elapsed = time.perf_counter() - started
+        return {
+            "status": "error",
+            "elapsed": elapsed,
+            "nodes": "N/A",
+            "peak_memory_mb": "",
+            "note": str(packet.get("error", "Unknown worker error")).strip(),
+        }
+
+    result = packet.get("result") or {}
+    return {
+        "status": "solved" if result.get("solved") else "failed",
+        "elapsed": float(result.get("elapsed", time.perf_counter() - started)),
+        "nodes": result.get("nodes", "N/A"),
+        "peak_memory_mb": result.get("peak_memory_mb", ""),
+        "note": str(result.get("note", "")).strip(),
+    }
+
+
+def run_benchmark(
+    limit=10,
+    include_sat=True,
+    include_bruteforce=True,
+    bruteforce_input_limit=2,
+    case_timeout_sec=120.0,
+):
+    OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    input_files = collect_inputs(limit=limit)
+    if not input_files:
+        raise RuntimeError(f"No input files found in {INPUTS_DIR}")
+
+    matrix = build_algorithm_matrix(
+        include_sat=include_sat,
+        include_bruteforce=include_bruteforce,
+    )
+    total_runs = len(input_files) * len(matrix)
+
+    print(f"Starting benchmark on {len(input_files)} input files")
+    print(f"Algorithm variants: {len(matrix)}")
+    if case_timeout_sec > 0:
+        print(f"Per-case timeout: {case_timeout_sec:.1f}s")
+    else:
+        print("Per-case timeout: disabled")
+    if include_bruteforce:
+        if bruteforce_input_limit > 0:
+            print(f"Brute Force mode: run only first {bruteforce_input_limit} input(s)")
+            print("Brute Force timeout: disabled for these inputs")
+        else:
+            print("Brute Force mode: enabled but skipped for all inputs (limit <= 0)")
+    else:
+        print("Brute Force mode: excluded from benchmark")
+    if include_sat and SAT_SOLVER_FILE.exists():
+        sat_state = "available" if SAT_AVAILABLE else "present but dependency missing"
+        print(f"SAT mode: included ({sat_state})")
+    else:
+        print("SAT mode: excluded")
+    print(f"Total runs: {total_runs}")
+    print("-" * 72)
+
+    rows = []
+    run_counter = 0
+
+    for file_index, input_path in enumerate(input_files, start=1):
+        env = load_env_from_file(input_path)
+        size_text = f"{env.n}x{env.n}"
+        print(f"[{file_index}/{len(input_files)}] {input_path.name} ({size_text})")
+
+        for algo_index, case in enumerate(matrix, start=1):
+            run_counter += 1
+            payload = {
+                "path": str(input_path),
+                "algo": case["algo"],
+                "heur": case["heur"],
+                "fc": bool(case["fc"]),
+            }
+
+            print(
+                f"  ({algo_index}/{len(matrix)}) {case['label']} ... ",
+                end="",
+                flush=True,
+            )
+
+            if (
+                include_bruteforce
+                and case["algo"] == BRUTE_FORCE_LABEL
+                and file_index > bruteforce_input_limit
+            ):
+                result = {
+                    "status": "skipped",
+                    "elapsed": 0.0,
+                    "nodes": "N/A",
+                    "peak_memory_mb": "",
+                    "note": f"Skipped: Brute Force runs only for first {bruteforce_input_limit} input(s)",
+                }
+            elif (
+                include_bruteforce
+                and case["algo"] == BRUTE_FORCE_LABEL
+                and file_index <= bruteforce_input_limit
+            ):
+                # Run full brute force for the first N inputs with no timeout.
+                result = run_case(payload, timeout_sec=0.0)
+            else:
+                result = run_case(payload, timeout_sec=case_timeout_sec)
+
+            print(f"{result['status']} ({result['elapsed']:.4f}s)")
+
+            rows.append(
+                {
+                    "timestamp": datetime.now().isoformat(timespec="seconds"),
+                    "input_file": input_path.name,
+                    "size": size_text,
+                    "algorithm_variant": case["label"],
+                    "algorithm": case["algo"],
+                    "heuristic": case["heur"],
+                    "fc_prune": "yes" if case["fc"] else "no",
+                    "status": result["status"],
+                    "elapsed_sec": _as_elapsed_text(result["elapsed"]),
+                    "nodes": str(result["nodes"]),
+                    "peak_memory_mb": _as_memory_text(result["peak_memory_mb"]),
+                    "note": result["note"],
+                }
+            )
+
+    with open(BENCHMARK_FILE, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=BENCHMARK_HEADER)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    print("-" * 72)
+    print(f"Completed {run_counter}/{total_runs} runs")
+    print(f"Benchmark saved to: {BENCHMARK_FILE}")
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Benchmark Futoshiki solvers across input files")
+    parser.add_argument("--limit", type=int, default=10, help="Number of input files to run (default: 10)")
+    parser.add_argument(
+        "--with-sat",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Include SAT Solver case when satsolver.py is present (default: enabled)",
+    )
+    parser.add_argument(
+        "--with-bruteforce",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Include Brute Force in benchmark matrix (default: enabled)",
+    )
+    parser.add_argument(
+        "--bruteforce-input-limit",
+        type=int,
+        default=2,
+        help="Run Brute Force only for the first N input files (default: 2)",
+    )
+    parser.add_argument(
+        "--case-timeout-sec",
+        "--case-timeout",
+        dest="case_timeout_sec",
+        type=float,
+        default=120.0,
+        help="Timeout per algorithm case in seconds (default: 120, 0 disables timeout)",
+    )
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
-    run_benchmark()
+    args = parse_args()
+    run_benchmark(
+        limit=max(1, args.limit),
+        include_sat=args.with_sat,
+        include_bruteforce=args.with_bruteforce,
+        bruteforce_input_limit=max(0, args.bruteforce_input_limit),
+        case_timeout_sec=max(0.0, args.case_timeout_sec),
+    )

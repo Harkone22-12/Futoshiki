@@ -1,5 +1,6 @@
-# Bỏ qua file chạy chính để tránh conflict khi tích hợp (evaluation)Source/Inputs/*
-Source/Outputs/*
+
+
+
 
 # Bỏ qua các file cache của Python
 __pycache__/
