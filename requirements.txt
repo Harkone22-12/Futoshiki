@@ -1,2 +1,3 @@
-matplotlib
-python-sat
+python-sat==1.9.dev2
+six==1.17.0
+psutil>=5.9.0

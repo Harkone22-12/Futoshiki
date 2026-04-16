@@ -1,0 +1,55 @@
+======================================================================
+FUTOSHIKI KNOWLEDGE BASE (FOL Facts)
+======================================================================
+
+GRID SIZE: 9x9
+
+======================================================================
+FACTS (từ Puzzle Instance)
+======================================================================
+
+# --- Given Clues (A9) ---
+Given(2, 5, 6)
+Given(3, 7, 8)
+Given(3, 9, 9)
+Given(4, 2, 7)
+Given(4, 4, 5)
+Given(5, 1, 5)
+Given(5, 6, 2)
+Given(5, 7, 1)
+Given(6, 5, 7)
+Given(7, 2, 8)
+Given(7, 3, 4)
+Given(8, 3, 9)
+Given(8, 4, 1)
+Given(9, 2, 2)
+Given(9, 5, 5)
+
+# --- Horizontal Constraints (A5, A7) ---
+LessH(1, 2)
+GreaterH(1, 4)
+LessH(1, 5)
+GreaterH(2, 2)
+LessH(3, 1)
+GreaterH(3, 3)
+GreaterH(4, 4)
+GreaterH(4, 8)
+LessH(7, 1)
+GreaterH(7, 2)
+GreaterH(8, 1)
+GreaterH(9, 7)
+
+# --- Vertical Constraints (A6, A8) ---
+LessV(1, 4)
+GreaterV(2, 1)
+LessV(2, 3)
+LessV(2, 8)
+GreaterV(3, 9)
+GreaterV(4, 1)
+LessV(4, 2)
+LessV(4, 8)
+LessV(6, 3)
+GreaterV(6, 9)
+LessV(7, 1)
+LessV(7, 3)
+======================================================================

@@ -1,6 +1,26 @@
 import heapq
 import time
 import os
+
+"""
+A* SEARCH WITH AC-3 CONSTRAINT PROPAGATION
+===========================================
+
+Heuristic: h(s) = Number of empty cells after AC-3 constraint propagation
+
+ADMISSIBILITY ANALYSIS:
+- AC-3 prunes impossible values from domains without making assignments
+- h(s) counts remaining empty cells with reduced domains
+- This is a lower bound: we can't fill fewer than this many cells
+- Therefore: h(s) never overestimates the cost to reach a goal
+- CONCLUSION: This heuristic is ADMISSIBLE
+
+EFFICIENCY:
+- AC-3 is relatively expensive (O(n³)) but provides good pruning
+- Reduces branching factor significantly
+- Good balance between heuristic quality and computation time
+"""
+
 file_path = "Source/Inputs/input-01.txt"
 
 def read_input(file_path):

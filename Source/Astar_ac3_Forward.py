@@ -4,6 +4,27 @@ import copy
 import os
 from futoshiki_env import FutoshikiEnv
 
+"""
+A* + FORWARD CHAINING WITH AC-3 (MAC - MAINTAINING ARC CONSISTENCY)
+==================================================================
+
+Combines A* with Forward Chaining and AC-3 constraint propagation.
+
+Heuristic: h(s) = Number of empty cells after AC-3 + Forward Chaining
+
+ADMISSIBILITY ANALYSIS:
+- AC-3 + FC work together to prune impossible assignments
+- h(s) is the count of remaining unassigned cells post-pruning
+- This is the minimum possible remaining work
+- Forward chaining may detect contradictions early (domain wipeout)
+- CONCLUSION: This heuristic is ADMISSIBLE
+
+EFFICIENCY:
+- More expensive than pure AC-3 due to forward chaining
+- But catches contradictions much earlier
+- Reduces search tree significantly on hard instances
+"""
+
 file_path = "Source/Inputs/input-01.txt"
 
 # ==========================================
