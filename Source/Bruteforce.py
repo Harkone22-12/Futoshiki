@@ -1,6 +1,8 @@
 import time
 import os
 
+file_path = "Source/Inputs/input-01.txt"
+
 # Hàm đọc in dữ liệu từ envi
 def read_input(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -126,7 +128,7 @@ def solve_bruteforce(grid, n, h_cons, v_cons, r=0, c=0, node_counter=None):
 # ==========================================
 
 if __name__ == "__main__":
-    input_file = "Source/Inputs/input-01.txt"  # Đổi đường dẫn file
+    input_file = file_path  # Đổi đường dẫn file
     
     # Sinh dẫn output
     file_name = os.path.basename(input_file).replace("input", "output")

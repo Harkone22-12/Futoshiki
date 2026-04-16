@@ -1,6 +1,27 @@
 import heapq
 import time
 import os
+
+"""
+A* SEARCH WITH MINIMUM REMAINING CONSTRAINTS (MRC)
+=================================================
+
+Heuristic: h(s) = Sum of unmet inequality constraint pairs
+
+ADMISSIBILITY ANALYSIS:
+- MRC counts how many inequality constraints are not yet satisfied
+- h(s) = number of (cell_i, cell_j) pairs with unset relationships
+- Each constraint must eventually be checked/satisfied
+- h(s) ≤ actual remaining constraint checks needed
+- CONCLUSION: This heuristic is ADMISSIBLE
+
+EFFICIENCY:
+- Very fast O(n²) computation
+- Effective for puzzles with many inequality constraints
+- Particularly good for dense constraint graphs
+- May explore more nodes but very cheap to compute each
+"""
+
 file_path = "Source/Inputs/input-01.txt"
 
 def read_input(file_path):

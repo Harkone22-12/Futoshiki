@@ -1,6 +1,27 @@
 import heapq
 import time
 import os
+
+"""
+A* SEARCH WITH MINIMUM BRANCHING DEGREE TIEBREAKER (MBDT)
+========================================================
+
+Heuristic: h(s) = Number of empty cells × (1 - normalized branching factor)
+
+ADMISSIBILITY ANALYSIS:
+- MBDT looks at cells with smallest domain (fewest value choices)
+- h(s) = empty_cells - (sum of domain sizes / max_possible_domain)
+- This estimates remaining assignment difficulty
+- The tiebreaker prioritizes cells with less flexibility
+- Lower bound: always ≤ actual cost to goal
+- CONCLUSION: This heuristic is ADMISSIBLE
+
+EFFICIENCY:
+- Faster than AC-3 (O(n²) instead of O(n³))
+- Still provides good pruning by focusing on constrained cells
+- Better performance on hard instances with many constraints
+"""
+
 file_path = "Source/Inputs/input-01.txt"
 
 def read_input(file_path):

@@ -1,7 +1,11 @@
 import time
 import os
+import re
 from futoshiki_env import FutoshikiEnv
+from KB_generator import KBGenerator
 from pysat.solvers import Glucose3
+
+file_path = "Source/Inputs/input-01.txt"
 
 # ==========================================
 # 2. CLASS SAT SOLVER (GIẢI BẰNG PURE LOGIC / CNF)
@@ -11,7 +15,8 @@ class FutoshikiSATSolver:
         self.env = env
         self.n = env.n
         self.solver = Glucose3() # Khởi tạo cỗ máy suy diễn logic Glucose3
-        self.cnf_strings = [] 
+        self.cnf_strings = []
+        self.kb_gen = KBGenerator(env)  # Sử dụng KB Generator
         
     def var_id(self, r, c, v):
         """Ánh xạ trạng thái Val(r, c, v) thành 1 số nguyên dương duy nhất."""
@@ -31,65 +36,66 @@ class FutoshikiSATSolver:
             str_vars.append(f"{prefix}Val_{r}_{c}_{v}")
         return " V ".join(str_vars)
 
+    def string_to_clause(self, clause_str):
+        """
+        Dịch chuỗi CNF như '(Val(1,1,1) ∨ Val(1,1,2) ∨ ~Val(2,1,3))'
+        thành danh sách ID biến có dấu [-2, 3, 4, ...]
+        """
+        # Lấy string đã strip
+        clause_str = clause_str.strip()
+        
+        # Loại bỏ ngoặc đơn đầu và cuối (CHỈ một cặp)
+        if clause_str.startswith('(') and clause_str.endswith(')'):
+            clause_str = clause_str[1:-1]
+        
+        # Tách các literal qua dấu ∨ (chỉ dấu ∨, không phải V)
+        # Hoặc split by ' V ' (V với spaces) để tránh tách từ trong Val
+        literals = re.split(r'∨|\s+V\s+', clause_str)
+        
+        clause = []
+        for lit in literals:
+            lit = lit.strip()
+            if not lit:
+                continue
+            
+            # Kiểm tra negation
+            is_neg = lit.startswith('¬') or lit.startswith('~')
+            if is_neg:
+                lit = lit[1:].strip()
+            
+            # Parse Val(r, c, v) - extract numbers inside Val(...)
+            match = re.search(r'Val\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)', lit)
+            if match:
+                r, c, v = int(match.group(1)), int(match.group(2)), int(match.group(3))
+                var_id = self.var_id(r, c, v)
+                clause.append(-var_id if is_neg else var_id)
+        
+        return clause
+
     def build_cnf_clauses(self):
-        """Dịch tất cả các Axioms thành Mệnh đề chuẩn CNF và nạp vào Solver."""
+        """
+        Sử dụng KB_generator để sinh ra các mệnh đề CNF
+        thay vì xây dựng chúng một cách thủ công.
+        """
         self.cnf_strings.clear()
+        self.log_strings = [] # Dùng để lưu trữ cả các dòng comment A1, A2,... để in log
         
-        def add_and_record(clause):
-            self.solver.add_clause(clause)
-            self.cnf_strings.append(self.clause_to_string(clause))
+        # Generate ground axioms từ KB Generator
+        grounded_axioms = self.kb_gen.ground_axioms()
         
-        # A1: Mọi ô phải có ÍT NHẤT 1 giá trị
-        for r in range(1, self.n + 1):
-            for c in range(1, self.n + 1):
-                clause = [self.var_id(r, c, v) for v in range(1, self.n + 1)]
-                add_and_record(clause)
-
-        # A2: Mọi ô có TỐI ĐA 1 giá trị
-        for r in range(1, self.n + 1):
-            for c in range(1, self.n + 1):
-                for v1 in range(1, self.n + 1):
-                    for v2 in range(v1 + 1, self.n + 1):
-                        add_and_record([-self.var_id(r, c, v1), -self.var_id(r, c, v2)])
-
-        # A3 & A3b: Duy nhất trên Hàng và Cột
-        for v in range(1, self.n + 1):
-            for i in range(1, self.n + 1):
-                for j1 in range(1, self.n + 1):
-                    for j2 in range(j1 + 1, self.n + 1):
-                        add_and_record([-self.var_id(i, j1, v), -self.var_id(i, j2, v)]) # Hàng
-                        add_and_record([-self.var_id(j1, i, v), -self.var_id(j2, i, v)]) # Cột
-
-        # A5: Sự thật hiển nhiên (Given Clues từ Env)
-        for r in range(self.n):
-            for c in range(self.n):
-                val = self.env.grid[r][c]
-                if val != 0:
-                    add_and_record([self.var_id(r + 1, c + 1, val)])
-
-        # A4 & A6: Ràng buộc Ngang (Horizontal Constraints)
-        for r in range(self.n):
-            for c in range(self.n - 1):
-                ctype = self.env.horiz_constraints[r][c]
-                if ctype != 0:
-                    for v1 in range(1, self.n + 1):
-                        for v2 in range(1, self.n + 1):
-                            if ctype == 1 and v1 >= v2:    # Dấu <
-                                add_and_record([-self.var_id(r + 1, c + 1, v1), -self.var_id(r + 1, c + 2, v2)])
-                            elif ctype == -1 and v1 <= v2: # Dấu >
-                                add_and_record([-self.var_id(r + 1, c + 1, v1), -self.var_id(r + 1, c + 2, v2)])
-
-        # A8 & A9: Ràng buộc Dọc (Vertical Constraints)
-        for r in range(self.n - 1):
-            for c in range(self.n):
-                ctype = self.env.vert_constraints[r][c]
-                if ctype != 0:
-                    for v1 in range(1, self.n + 1):
-                        for v2 in range(1, self.n + 1):
-                            if ctype == 1 and v1 >= v2:    # Dấu ^ (top < bottom)
-                                add_and_record([-self.var_id(r + 1, c + 1, v1), -self.var_id(r + 2, c + 1, v2)])
-                            elif ctype == -1 and v1 <= v2: # Dấu v (top > bottom)
-                                add_and_record([-self.var_id(r + 1, c + 1, v1), -self.var_id(r + 2, c + 1, v2)])
+        # Parse và add từng clause vào solver
+        for clause_str in grounded_axioms:
+            # Bỏ qua comment lines và empty lines NHƯNG giữ lại trong log
+            if clause_str.strip().startswith("#") or not clause_str.strip():
+                self.log_strings.append(clause_str)
+                continue
+            
+            # Convert string clause to integer clause
+            clause = self.string_to_clause(clause_str)
+            if clause:  # Nếu clause không rỗng
+                self.solver.add_clause(clause)
+                self.cnf_strings.append(clause_str)
+                self.log_strings.append(clause_str)
 
     def solve(self):
         """Kích hoạt SAT Solver và dịch mảng kết quả thành Grid."""
@@ -187,8 +193,7 @@ def save_solution_to_file(output_path, n, grid, env):
                 f.write(v_str.rstrip() + "\n")
 
 if __name__ == "__main__":
-    # Thay đổi đường dẫn file input ở đây
-    input_file = "Source/Inputs/input-10.txt"
+    input_file = file_path
     
     # --- TỰ ĐỘNG SINH ĐƯỜNG DẪN OUTPUT ---
     file_name = os.path.basename(input_file).replace("input", "output")
@@ -196,42 +201,44 @@ if __name__ == "__main__":
     
     try:
         env = load_env_from_file(input_file)
-        print(f"--- Đang giải Futoshiki {env.n}x{env.n} bằng SAT SOLVER (Pysat/Glucose3) ---")
+        print(f"[*] Solving Futoshiki {env.n}x{env.n} using SAT SOLVER (Pysat/Glucose3)")
         
         sat_solver = FutoshikiSATSolver(env)
         sat_solver.build_cnf_clauses()
 
         total_clauses = len(sat_solver.cnf_strings)
-        print(f"-> SAT Solver đã tạo ra {total_clauses} mệnh đề CNF.")
+        print(f"[+] SAT Solver created {total_clauses} CNF clauses.")
 
         os.makedirs("Source/Outputs", exist_ok=True)
-        with open("Source/Outputs/cnf_clauses_log.txt", "w", encoding="utf-8") as f:
-            f.write(f"TỔNG SỐ MỆNH ĐỀ CNF: {total_clauses}\n")
-            f.write("\n".join(sat_solver.cnf_strings))
-        print("-> Đã lưu toàn bộ Ground KB (CNF) ra file 'Source/Outputs/cnf_clauses_log.txt'")
+        base_name = os.path.basename(input_file).replace('.txt', '')
+        log_file = os.path.join("Source", "Outputs", f"cnf_clauses_log_{base_name}.txt")
+        with open(log_file, "w", encoding="utf-8") as f:
+            f.write(f"TOTAL CNF CLAUSES: {total_clauses}\n")
+            f.write("\n".join(sat_solver.log_strings))
+        print(f"[+] Saved CNF clauses to '{log_file}'")
         
         start_time = time.time()
         
-        # GỠ GÓI TUPLE
+        # Unpack tuple
         solution, decisions = sat_solver.solve()
         
         end_time = time.time()
         
         if solution:
-            print(f"\n======= KẾT QUẢ FUTOSHIKI =======")
+            print(f"\n[SUCCESS] Futoshiki Solved!")
             print_solution(env.n, solution, env)
-            print(f"\nTIME: {end_time - start_time:.4f}s")
-            print(f"Số Node đã mở rộng (Decisions count): {decisions}")
+            print(f"\nTime: {end_time - start_time:.4f}s")
+            print(f"Decisions made: {decisions}")
             
             save_solution_to_file(output_file, env.n, solution, env)
-            print(f"--> Đã lưu kết quả thành công vào: {output_file}")
+            print(f"[+] Solution saved to: {output_file}")
             
         else:
-            print("\nSAT Solver kết luận: BÀI TOÁN VÔ NGHIỆM.")
-            print(f"Số Node đã duyệt trước khi kết luận: {decisions}")
+            print("\n[UNSAT] No solution found.")
+            print(f"Decisions explored: {decisions}")
             
     except FileNotFoundError:
-        print(f"Lỗi: Không tìm thấy file {input_file}.")
+        print(f"[ERROR] File not found: {input_file}.")
     except ImportError:
-        print("Lỗi: Bạn chưa cài thư viện 'python-sat'.")
-        print("Vui lòng mở Terminal và chạy lệnh: pip install python-sat")
+        print("[ERROR] Missing required library 'python-sat'.")
+        print("Install with: pip install python-sat")

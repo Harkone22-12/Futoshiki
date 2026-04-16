@@ -1,6 +1,7 @@
 import time
 import os
 from futoshiki_env import FutoshikiEnv
+file_path = "Source/Inputs/input-01.txt"
 
 class SLDResolutionEngine:
     def __init__(self, env):
@@ -155,7 +156,7 @@ def save_solution_to_file(output_path, n, grid, env):
                 f.write(v_str.rstrip() + "\n")
 
 if __name__ == "__main__":
-    input_file = r"Source/Inputs/input-01.txt" # Đổi lại file test tại đây
+    input_file = file_path # Đổi lại file test tại đây
     
     file_name = os.path.basename(input_file).replace("input", "output")
     output_file = os.path.join("Source", "Outputs", file_name)

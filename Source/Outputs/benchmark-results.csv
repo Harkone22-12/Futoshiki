@@ -1,0 +1,121 @@
+timestamp,input_file,size,algorithm_variant,algorithm,heuristic,fc_prune,status,elapsed_sec,nodes,peak_memory_mb,note
+2026-04-16T14:50:32,input-01.txt,4x4,Brute Force,Brute Force,,no,solved,128.1611,42066376,0.0124,
+2026-04-16T14:50:32,input-01.txt,4x4,Backtracking,Backtracking,,no,solved,0.0004,44,0.0100,
+2026-04-16T14:50:32,input-01.txt,4x4,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0002,2,0.0154,
+2026-04-16T14:50:32,input-01.txt,4x4,Pure Forward Chaining,Pure Forward Chaining,,no,failed,0.0001,N/A,0.0082,KHÔNG THỂ GIẢI ĐƯỢC chỉ bằng Pure FC (Cần thuật toán tìm kiếm rẽ nhánh).
+2026-04-16T14:50:33,input-01.txt,4x4,Backward Chaining (SLD),Backward Chaining (SLD),,no,solved,0.0004,54,0.0113,
+2026-04-16T14:50:33,input-01.txt,4x4,A* AC3,A* Search,AC3,no,solved,0.0019,14,0.0169,
+2026-04-16T14:50:33,input-01.txt,4x4,A* MBDT,A* Search,MBDT,no,solved,0.0012,14,0.0164,
+2026-04-16T14:50:33,input-01.txt,4x4,A* MRC,A* Search,MRC,no,solved,0.0011,14,0.0167,
+2026-04-16T14:50:33,input-01.txt,4x4,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0005,2,0.0242,
+2026-04-16T14:50:33,input-01.txt,4x4,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0005,2,0.0242,
+2026-04-16T14:50:33,input-01.txt,4x4,A* MRC + MAC,A* Search,MRC,yes,solved,0.0005,2,0.0246,
+2026-04-16T16:13:19,input-01.txt,4x4,SAT Solver,SAT Solver,,no,solved,0.0091,3,0.0711,CNF clauses: 367
+2026-04-16T15:07:17,input-02.txt,4x4,Brute Force,Brute Force,,no,solved,1003.3649,321263913,0.0125,
+2026-04-16T15:07:17,input-02.txt,4x4,Backtracking,Backtracking,,no,solved,0.0007,82,0.0106,
+2026-04-16T15:07:17,input-02.txt,4x4,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0012,11,0.0391,
+2026-04-16T15:07:17,input-02.txt,4x4,Pure Forward Chaining,Pure Forward Chaining,,no,failed,0.0001,N/A,0.0080,KHÔNG THỂ GIẢI ĐƯỢC chỉ bằng Pure FC (Cần thuật toán tìm kiếm rẽ nhánh).
+2026-04-16T15:07:18,input-02.txt,4x4,Backward Chaining (SLD),Backward Chaining (SLD),,no,solved,0.0008,94,0.0113,
+2026-04-16T15:07:18,input-02.txt,4x4,A* AC3,A* Search,AC3,no,solved,0.0049,26,0.0267,
+2026-04-16T15:07:18,input-02.txt,4x4,A* MBDT,A* Search,MBDT,no,solved,0.0034,36,0.0257,
+2026-04-16T15:07:18,input-02.txt,4x4,A* MRC,A* Search,MRC,no,solved,0.0032,35,0.0257,
+2026-04-16T15:07:18,input-02.txt,4x4,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0018,11,0.0417,
+2026-04-16T15:07:18,input-02.txt,4x4,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0018,11,0.0473,
+2026-04-16T15:07:18,input-02.txt,4x4,A* MRC + MAC,A* Search,MRC,yes,solved,0.0018,11,0.0421,
+2026-04-16T16:13:19,input-02.txt,4x4,SAT Solver,SAT Solver,,no,solved,0.0098,11,0.0734,CNF clauses: 386
+2026-04-16T15:07:18,input-03.txt,5x5,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
+2026-04-16T15:07:19,input-03.txt,5x5,Backtracking,Backtracking,,no,solved,0.0007,67,0.0143,
+2026-04-16T15:07:19,input-03.txt,5x5,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0006,4,0.0582,
+2026-04-16T15:07:19,input-03.txt,5x5,Pure Forward Chaining,Pure Forward Chaining,,no,failed,0.0001,N/A,0.0202,KHÔNG THỂ GIẢI ĐƯỢC chỉ bằng Pure FC (Cần thuật toán tìm kiếm rẽ nhánh).
+2026-04-16T15:07:19,input-03.txt,5x5,Backward Chaining (SLD),Backward Chaining (SLD),,no,solved,0.0008,88,0.0158,
+2026-04-16T15:07:19,input-03.txt,5x5,A* AC3,A* Search,AC3,no,solved,0.0049,21,0.0253,
+2026-04-16T15:07:19,input-03.txt,5x5,A* MBDT,A* Search,MBDT,no,solved,0.0029,22,0.0258,
+2026-04-16T15:07:19,input-03.txt,5x5,A* MRC,A* Search,MRC,no,solved,0.0027,21,0.0252,
+2026-04-16T15:07:20,input-03.txt,5x5,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0011,4,0.0814,
+2026-04-16T15:07:20,input-03.txt,5x5,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0011,4,0.0815,
+2026-04-16T15:07:20,input-03.txt,5x5,A* MRC + MAC,A* Search,MRC,yes,solved,0.0012,4,0.0818,
+2026-04-16T16:13:20,input-03.txt,5x5,SAT Solver,SAT Solver,,no,solved,0.0215,16,0.1502,CNF clauses: 900
+2026-04-16T15:07:20,input-04.txt,5x5,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
+2026-04-16T15:07:20,input-04.txt,5x5,Backtracking,Backtracking,,no,solved,0.0022,206,0.0155,
+2026-04-16T15:07:20,input-04.txt,5x5,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0014,9,0.0947,
+2026-04-16T15:07:20,input-04.txt,5x5,Pure Forward Chaining,Pure Forward Chaining,,no,failed,0.0002,N/A,0.0211,KHÔNG THỂ GIẢI ĐƯỢC chỉ bằng Pure FC (Cần thuật toán tìm kiếm rẽ nhánh).
+2026-04-16T15:07:20,input-04.txt,5x5,Backward Chaining (SLD),Backward Chaining (SLD),,no,solved,0.0025,260,0.0159,
+2026-04-16T15:07:21,input-04.txt,5x5,A* AC3,A* Search,AC3,no,solved,0.0073,30,0.0324,
+2026-04-16T15:07:21,input-04.txt,5x5,A* MBDT,A* Search,MBDT,no,solved,0.0068,50,0.0414,
+2026-04-16T15:07:21,input-04.txt,5x5,A* MRC,A* Search,MRC,no,solved,0.0045,34,0.0318,
+2026-04-16T15:07:21,input-04.txt,5x5,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0018,7,0.0956,
+2026-04-16T15:07:21,input-04.txt,5x5,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0021,8,0.1067,
+2026-04-16T15:07:21,input-04.txt,5x5,A* MRC + MAC,A* Search,MRC,yes,solved,0.0018,7,0.0961,
+2026-04-16T16:13:20,input-04.txt,5x5,SAT Solver,SAT Solver,,no,solved,0.0216,14,0.1574,CNF clauses: 958
+2026-04-16T15:07:21,input-05.txt,6x6,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
+2026-04-16T15:07:22,input-05.txt,6x6,Backtracking,Backtracking,,no,solved,0.1953,13487,0.0212,
+2026-04-16T15:07:22,input-05.txt,6x6,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0068,33,0.1904,
+2026-04-16T15:07:22,input-05.txt,6x6,Pure Forward Chaining,Pure Forward Chaining,,no,failed,0.0002,N/A,0.0279,KHÔNG THỂ GIẢI ĐƯỢC chỉ bằng Pure FC (Cần thuật toán tìm kiếm rẽ nhánh).
+2026-04-16T15:07:22,input-05.txt,6x6,Backward Chaining (SLD),Backward Chaining (SLD),,no,solved,0.2021,15206,0.0231,
+2026-04-16T15:07:22,input-05.txt,6x6,A* AC3,A* Search,AC3,no,solved,0.0427,135,0.1216,
+2026-04-16T15:07:23,input-05.txt,6x6,A* MBDT,A* Search,MBDT,no,solved,0.0171,92,0.0813,
+2026-04-16T15:07:23,input-05.txt,6x6,A* MRC,A* Search,MRC,no,solved,0.0261,160,0.1192,
+2026-04-16T15:07:23,input-05.txt,6x6,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0100,33,0.2239,
+2026-04-16T15:07:23,input-05.txt,6x6,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0043,13,0.2023,
+2026-04-16T15:07:23,input-05.txt,6x6,A* MRC + MAC,A* Search,MRC,yes,solved,0.0105,33,0.2243,
+2026-04-16T16:13:20,input-05.txt,6x6,SAT Solver,SAT Solver,,no,solved,0.0425,20,0.2999,CNF clauses: 1914
+2026-04-16T15:07:23,input-06.txt,6x6,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
+2026-04-16T15:07:24,input-06.txt,6x6,Backtracking,Backtracking,,no,solved,0.0018,163,0.0217,
+2026-04-16T15:07:24,input-06.txt,6x6,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0035,19,0.2013,
+2026-04-16T15:07:24,input-06.txt,6x6,Pure Forward Chaining,Pure Forward Chaining,,no,failed,0.0002,N/A,0.0285,KHÔNG THỂ GIẢI ĐƯỢC chỉ bằng Pure FC (Cần thuật toán tìm kiếm rẽ nhánh).
+2026-04-16T15:07:24,input-06.txt,6x6,Backward Chaining (SLD),Backward Chaining (SLD),,no,solved,0.0026,169,0.0212,
+2026-04-16T15:07:24,input-06.txt,6x6,A* AC3,A* Search,AC3,no,solved,0.0301,95,0.0925,
+2026-04-16T15:07:24,input-06.txt,6x6,A* MBDT,A* Search,MBDT,no,solved,0.0161,102,0.0912,
+2026-04-16T15:07:24,input-06.txt,6x6,A* MRC,A* Search,MRC,no,solved,0.0153,102,0.0916,
+2026-04-16T15:07:25,input-06.txt,6x6,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0070,19,0.3043,
+2026-04-16T15:07:25,input-06.txt,6x6,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0085,22,0.4106,
+2026-04-16T15:07:25,input-06.txt,6x6,A* MRC + MAC,A* Search,MRC,yes,solved,0.0070,19,0.3047,
+2026-04-16T16:13:20,input-06.txt,6x6,SAT Solver,SAT Solver,,no,solved,0.0436,53,0.3100,CNF clauses: 1996
+2026-04-16T15:07:25,input-07.txt,7x7,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
+2026-04-16T15:07:25,input-07.txt,7x7,Backtracking,Backtracking,,no,solved,0.0166,1055,0.0281,
+2026-04-16T15:07:25,input-07.txt,7x7,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0316,115,0.3259,
+2026-04-16T15:07:25,input-07.txt,7x7,Pure Forward Chaining,Pure Forward Chaining,,no,failed,0.0002,N/A,0.0370,KHÔNG THỂ GIẢI ĐƯỢC chỉ bằng Pure FC (Cần thuật toán tìm kiếm rẽ nhánh).
+2026-04-16T15:07:26,input-07.txt,7x7,Backward Chaining (SLD),Backward Chaining (SLD),,no,solved,0.0180,1151,0.0294,
+2026-04-16T15:07:26,input-07.txt,7x7,A* AC3,A* Search,AC3,no,solved,0.2804,640,0.6126,
+2026-04-16T15:07:26,input-07.txt,7x7,A* MBDT,A* Search,MBDT,no,solved,0.1657,700,0.5713,
+2026-04-16T15:07:27,input-07.txt,7x7,A* MRC,A* Search,MRC,no,solved,0.1622,743,0.6004,
+2026-04-16T15:07:27,input-07.txt,7x7,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0161,40,0.3923,
+2026-04-16T15:07:27,input-07.txt,7x7,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0223,54,0.8080,
+2026-04-16T15:07:27,input-07.txt,7x7,A* MRC + MAC,A* Search,MRC,yes,solved,0.0155,40,0.3928,
+2026-04-16T16:13:20,input-07.txt,7x7,SAT Solver,SAT Solver,,no,solved,0.0757,103,0.5447,CNF clauses: 3592
+2026-04-16T15:07:27,input-08.txt,7x7,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
+2026-04-16T15:07:28,input-08.txt,7x7,Backtracking,Backtracking,,no,solved,0.1530,10148,0.0293,
+2026-04-16T15:07:28,input-08.txt,7x7,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0062,28,0.4201,
+2026-04-16T15:07:28,input-08.txt,7x7,Pure Forward Chaining,Pure Forward Chaining,,no,failed,0.0004,N/A,0.0370,KHÔNG THỂ GIẢI ĐƯỢC chỉ bằng Pure FC (Cần thuật toán tìm kiếm rẽ nhánh).
+2026-04-16T15:07:28,input-08.txt,7x7,Backward Chaining (SLD),Backward Chaining (SLD),,no,solved,0.1833,12045,0.0295,
+2026-04-16T15:07:28,input-08.txt,7x7,A* AC3,A* Search,AC3,no,solved,0.0415,73,0.0925,
+2026-04-16T15:07:28,input-08.txt,7x7,A* MBDT,A* Search,MBDT,no,solved,0.0216,69,0.0847,
+2026-04-16T15:07:29,input-08.txt,7x7,A* MRC,A* Search,MRC,no,solved,0.0211,82,0.0974,
+2026-04-16T15:07:29,input-08.txt,7x7,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0101,23,0.4804,
+2026-04-16T15:07:29,input-08.txt,7x7,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0106,23,0.4804,
+2026-04-16T15:07:29,input-08.txt,7x7,A* MRC + MAC,A* Search,MRC,yes,solved,0.0120,23,0.4809,
+2026-04-16T16:13:21,input-08.txt,7x7,SAT Solver,SAT Solver,,no,solved,0.0853,175,0.5825,CNF clauses: 3814
+2026-04-16T15:07:29,input-09.txt,9x9,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
+2026-04-16T15:07:30,input-09.txt,9x9,Backtracking,Backtracking,,no,solved,0.2696,10020,0.0435,
+2026-04-16T15:07:30,input-09.txt,9x9,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.1351,277,1.0997,
+2026-04-16T15:07:30,input-09.txt,9x9,Pure Forward Chaining,Pure Forward Chaining,,no,failed,0.0004,N/A,0.0600,KHÔNG THỂ GIẢI ĐƯỢC chỉ bằng Pure FC (Cần thuật toán tìm kiếm rẽ nhánh).
+2026-04-16T15:07:30,input-09.txt,9x9,Backward Chaining (SLD),Backward Chaining (SLD),,no,solved,0.2553,10873,0.0454,
+2026-04-16T15:07:31,input-09.txt,9x9,A* AC3,A* Search,AC3,no,solved,0.2021,207,0.3392,
+2026-04-16T15:07:31,input-09.txt,9x9,A* MBDT,A* Search,MBDT,no,solved,0.3542,723,0.9172,
+2026-04-16T15:07:31,input-09.txt,9x9,A* MRC,A* Search,MRC,no,solved,0.1057,246,0.3351,
+2026-04-16T15:09:32,input-09.txt,9x9,A* AC3 + MAC,A* Search,AC3,yes,timeout,120.2061,N/A,,Timed out after 120.0s
+2026-04-16T15:09:33,input-09.txt,9x9,A* MBDT + MAC,A* Search,MBDT,yes,solved,1.4124,1734,55.5387,
+2026-04-16T15:11:33,input-09.txt,9x9,A* MRC + MAC,A* Search,MRC,yes,timeout,120.1747,N/A,,Timed out after 120.0s
+2026-04-16T16:13:21,input-09.txt,9x9,SAT Solver,SAT Solver,,no,solved,0.2110,331,1.4848,CNF clauses: 9924
+2026-04-16T15:11:34,input-10.txt,9x9,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
+2026-04-16T15:13:34,input-10.txt,9x9,Backtracking,Backtracking,,no,timeout,120.0209,N/A,,Timed out after 120.0s
+2026-04-16T15:13:34,input-10.txt,9x9,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0841,171,1.1632,
+2026-04-16T15:13:34,input-10.txt,9x9,Pure Forward Chaining,Pure Forward Chaining,,no,failed,0.0004,N/A,0.0600,KHÔNG THỂ GIẢI ĐƯỢC chỉ bằng Pure FC (Cần thuật toán tìm kiếm rẽ nhánh).
+2026-04-16T15:15:34,input-10.txt,9x9,Backward Chaining (SLD),Backward Chaining (SLD),,no,timeout,120.0114,N/A,,Timed out after 120.0s
+2026-04-16T15:15:34,input-10.txt,9x9,A* AC3,A* Search,AC3,no,solved,0.1688,109,0.2088,
+2026-04-16T15:15:35,input-10.txt,9x9,A* MBDT,A* Search,MBDT,no,solved,0.1198,165,0.2823,
+2026-04-16T15:15:35,input-10.txt,9x9,A* MRC,A* Search,MRC,no,solved,0.0886,135,0.2061,
+2026-04-16T15:15:35,input-10.txt,9x9,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0542,78,1.9485,
+2026-04-16T15:15:39,input-10.txt,9x9,A* MBDT + MAC,A* Search,MBDT,yes,solved,3.8996,3888,192.8165,
+2026-04-16T15:15:39,input-10.txt,9x9,A* MRC + MAC,A* Search,MRC,yes,solved,0.0513,78,1.9490,
+2026-04-16T16:13:21,input-10.txt,9x9,SAT Solver,SAT Solver,,no,solved,0.2332,841,1.5922,CNF clauses: 10639

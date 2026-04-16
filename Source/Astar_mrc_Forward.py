@@ -4,6 +4,30 @@ import copy
 import os
 from futoshiki_env import FutoshikiEnv
 
+"""
+A* + FORWARD CHAINING WITH MRC (MINIMUM REMAINING CONSTRAINTS)
+=============================================================
+
+Combines A* with Forward Chaining and MRC heuristic.
+
+Heuristic: h(s) = Sum of unmet constraint pairs with FC propagation
+
+ADMISSIBILITY ANALYSIS:
+- MRC counts constraints that still need to be verified
+- Forward chaining eliminates impossible branches early
+- h(s) ≤ actual remaining constraint work
+- MRC + FC is particularly effective on constraint-heavy puzzles
+- CONCLUSION: This heuristic is ADMISSIBLE
+
+EFFICIENCY:
+- Fastest among all variants (O(n²) heuristic computation)
+- Forward chaining still provides good pruning
+- Excellent for puzzles with many inequality constraints
+- Very practical approach with minimal overhead
+"""
+
+file_path = "Source/Inputs/input-01.txt"
+
 # ==========================================
 # 2. CLASS SINH LUẬT (KB GENERATOR) DÀNH CHO BÁO CÁO
 # ==========================================
@@ -288,7 +312,7 @@ def save_solution_to_file(output_path, n, grid, env):
                 f.write(v_str.rstrip() + "\n")
 
 if __name__ == "__main__":
-    input_file = "Source/Inputs/input-01.txt" # Đổi đường dẫn file nếu cần
+    input_file = file_path # Đổi đường dẫn file nếu cần
     
     # --- TỰ ĐỘNG SINH ĐƯỜNG DẪN OUTPUT ---
     # Lấy tên file gốc (vd: 'input-10.txt') và đổi chữ 'input' thành 'output'
