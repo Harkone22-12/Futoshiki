@@ -10,7 +10,7 @@ timestamp,input_file,size,algorithm_variant,algorithm,heuristic,fc_prune,status,
 2026-04-16T14:50:33,input-01.txt,4x4,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0005,2,0.0242,
 2026-04-16T14:50:33,input-01.txt,4x4,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0005,2,0.0242,
 2026-04-16T14:50:33,input-01.txt,4x4,A* MRC + MAC,A* Search,MRC,yes,solved,0.0005,2,0.0246,
-2026-04-16T14:50:34,input-01.txt,4x4,SAT Solver,SAT Solver,,no,solved,0.0040,3,0.0394,CNF clauses: 367
+2026-04-16T16:13:19,input-01.txt,4x4,SAT Solver,SAT Solver,,no,solved,0.0091,3,0.0711,CNF clauses: 367
 2026-04-16T15:07:17,input-02.txt,4x4,Brute Force,Brute Force,,no,solved,1003.3649,321263913,0.0125,
 2026-04-16T15:07:17,input-02.txt,4x4,Backtracking,Backtracking,,no,solved,0.0007,82,0.0106,
 2026-04-16T15:07:17,input-02.txt,4x4,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0012,11,0.0391,
@@ -22,7 +22,7 @@ timestamp,input_file,size,algorithm_variant,algorithm,heuristic,fc_prune,status,
 2026-04-16T15:07:18,input-02.txt,4x4,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0018,11,0.0417,
 2026-04-16T15:07:18,input-02.txt,4x4,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0018,11,0.0473,
 2026-04-16T15:07:18,input-02.txt,4x4,A* MRC + MAC,A* Search,MRC,yes,solved,0.0018,11,0.0421,
-2026-04-16T15:07:18,input-02.txt,4x4,SAT Solver,SAT Solver,,no,solved,0.0046,11,0.0407,CNF clauses: 386
+2026-04-16T16:13:19,input-02.txt,4x4,SAT Solver,SAT Solver,,no,solved,0.0098,11,0.0734,CNF clauses: 386
 2026-04-16T15:07:18,input-03.txt,5x5,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
 2026-04-16T15:07:19,input-03.txt,5x5,Backtracking,Backtracking,,no,solved,0.0007,67,0.0143,
 2026-04-16T15:07:19,input-03.txt,5x5,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0006,4,0.0582,
@@ -34,7 +34,7 @@ timestamp,input_file,size,algorithm_variant,algorithm,heuristic,fc_prune,status,
 2026-04-16T15:07:20,input-03.txt,5x5,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0011,4,0.0814,
 2026-04-16T15:07:20,input-03.txt,5x5,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0011,4,0.0815,
 2026-04-16T15:07:20,input-03.txt,5x5,A* MRC + MAC,A* Search,MRC,yes,solved,0.0012,4,0.0818,
-2026-04-16T15:07:20,input-03.txt,5x5,SAT Solver,SAT Solver,,no,solved,0.0088,18,0.0830,CNF clauses: 900
+2026-04-16T16:13:20,input-03.txt,5x5,SAT Solver,SAT Solver,,no,solved,0.0215,16,0.1502,CNF clauses: 900
 2026-04-16T15:07:20,input-04.txt,5x5,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
 2026-04-16T15:07:20,input-04.txt,5x5,Backtracking,Backtracking,,no,solved,0.0022,206,0.0155,
 2026-04-16T15:07:20,input-04.txt,5x5,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0014,9,0.0947,
@@ -46,7 +46,7 @@ timestamp,input_file,size,algorithm_variant,algorithm,heuristic,fc_prune,status,
 2026-04-16T15:07:21,input-04.txt,5x5,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0018,7,0.0956,
 2026-04-16T15:07:21,input-04.txt,5x5,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0021,8,0.1067,
 2026-04-16T15:07:21,input-04.txt,5x5,A* MRC + MAC,A* Search,MRC,yes,solved,0.0018,7,0.0961,
-2026-04-16T15:07:21,input-04.txt,5x5,SAT Solver,SAT Solver,,no,solved,0.0095,14,0.0870,CNF clauses: 958
+2026-04-16T16:13:20,input-04.txt,5x5,SAT Solver,SAT Solver,,no,solved,0.0216,14,0.1574,CNF clauses: 958
 2026-04-16T15:07:21,input-05.txt,6x6,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
 2026-04-16T15:07:22,input-05.txt,6x6,Backtracking,Backtracking,,no,solved,0.1953,13487,0.0212,
 2026-04-16T15:07:22,input-05.txt,6x6,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0068,33,0.1904,
@@ -58,7 +58,7 @@ timestamp,input_file,size,algorithm_variant,algorithm,heuristic,fc_prune,status,
 2026-04-16T15:07:23,input-05.txt,6x6,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0100,33,0.2239,
 2026-04-16T15:07:23,input-05.txt,6x6,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0043,13,0.2023,
 2026-04-16T15:07:23,input-05.txt,6x6,A* MRC + MAC,A* Search,MRC,yes,solved,0.0105,33,0.2243,
-2026-04-16T15:07:23,input-05.txt,6x6,SAT Solver,SAT Solver,,no,solved,0.0191,20,0.1648,CNF clauses: 1914
+2026-04-16T16:13:20,input-05.txt,6x6,SAT Solver,SAT Solver,,no,solved,0.0425,20,0.2999,CNF clauses: 1914
 2026-04-16T15:07:23,input-06.txt,6x6,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
 2026-04-16T15:07:24,input-06.txt,6x6,Backtracking,Backtracking,,no,solved,0.0018,163,0.0217,
 2026-04-16T15:07:24,input-06.txt,6x6,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0035,19,0.2013,
@@ -70,7 +70,7 @@ timestamp,input_file,size,algorithm_variant,algorithm,heuristic,fc_prune,status,
 2026-04-16T15:07:25,input-06.txt,6x6,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0070,19,0.3043,
 2026-04-16T15:07:25,input-06.txt,6x6,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0085,22,0.4106,
 2026-04-16T15:07:25,input-06.txt,6x6,A* MRC + MAC,A* Search,MRC,yes,solved,0.0070,19,0.3047,
-2026-04-16T15:07:25,input-06.txt,6x6,SAT Solver,SAT Solver,,no,solved,0.0186,52,0.1705,CNF clauses: 1996
+2026-04-16T16:13:20,input-06.txt,6x6,SAT Solver,SAT Solver,,no,solved,0.0436,53,0.3100,CNF clauses: 1996
 2026-04-16T15:07:25,input-07.txt,7x7,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
 2026-04-16T15:07:25,input-07.txt,7x7,Backtracking,Backtracking,,no,solved,0.0166,1055,0.0281,
 2026-04-16T15:07:25,input-07.txt,7x7,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0316,115,0.3259,
@@ -82,7 +82,7 @@ timestamp,input_file,size,algorithm_variant,algorithm,heuristic,fc_prune,status,
 2026-04-16T15:07:27,input-07.txt,7x7,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0161,40,0.3923,
 2026-04-16T15:07:27,input-07.txt,7x7,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0223,54,0.8080,
 2026-04-16T15:07:27,input-07.txt,7x7,A* MRC + MAC,A* Search,MRC,yes,solved,0.0155,40,0.3928,
-2026-04-16T15:07:27,input-07.txt,7x7,SAT Solver,SAT Solver,,no,solved,0.0355,299,0.2982,CNF clauses: 3592
+2026-04-16T16:13:20,input-07.txt,7x7,SAT Solver,SAT Solver,,no,solved,0.0757,103,0.5447,CNF clauses: 3592
 2026-04-16T15:07:27,input-08.txt,7x7,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
 2026-04-16T15:07:28,input-08.txt,7x7,Backtracking,Backtracking,,no,solved,0.1530,10148,0.0293,
 2026-04-16T15:07:28,input-08.txt,7x7,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0062,28,0.4201,
@@ -94,7 +94,7 @@ timestamp,input_file,size,algorithm_variant,algorithm,heuristic,fc_prune,status,
 2026-04-16T15:07:29,input-08.txt,7x7,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0101,23,0.4804,
 2026-04-16T15:07:29,input-08.txt,7x7,A* MBDT + MAC,A* Search,MBDT,yes,solved,0.0106,23,0.4804,
 2026-04-16T15:07:29,input-08.txt,7x7,A* MRC + MAC,A* Search,MRC,yes,solved,0.0120,23,0.4809,
-2026-04-16T15:07:29,input-08.txt,7x7,SAT Solver,SAT Solver,,no,solved,0.0376,175,0.3170,CNF clauses: 3814
+2026-04-16T16:13:21,input-08.txt,7x7,SAT Solver,SAT Solver,,no,solved,0.0853,175,0.5825,CNF clauses: 3814
 2026-04-16T15:07:29,input-09.txt,9x9,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
 2026-04-16T15:07:30,input-09.txt,9x9,Backtracking,Backtracking,,no,solved,0.2696,10020,0.0435,
 2026-04-16T15:07:30,input-09.txt,9x9,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.1351,277,1.0997,
@@ -106,7 +106,7 @@ timestamp,input_file,size,algorithm_variant,algorithm,heuristic,fc_prune,status,
 2026-04-16T15:09:32,input-09.txt,9x9,A* AC3 + MAC,A* Search,AC3,yes,timeout,120.2061,N/A,,Timed out after 120.0s
 2026-04-16T15:09:33,input-09.txt,9x9,A* MBDT + MAC,A* Search,MBDT,yes,solved,1.4124,1734,55.5387,
 2026-04-16T15:11:33,input-09.txt,9x9,A* MRC + MAC,A* Search,MRC,yes,timeout,120.1747,N/A,,Timed out after 120.0s
-2026-04-16T15:11:34,input-09.txt,9x9,SAT Solver,SAT Solver,,no,solved,0.1071,527,0.8040,CNF clauses: 9924
+2026-04-16T16:13:21,input-09.txt,9x9,SAT Solver,SAT Solver,,no,solved,0.2110,331,1.4848,CNF clauses: 9924
 2026-04-16T15:11:34,input-10.txt,9x9,Brute Force,Brute Force,,no,skipped,0.0000,N/A,,Skipped: Brute Force runs only for first 2 input(s)
 2026-04-16T15:13:34,input-10.txt,9x9,Backtracking,Backtracking,,no,timeout,120.0209,N/A,,Timed out after 120.0s
 2026-04-16T15:13:34,input-10.txt,9x9,Backtracking + Forward Chaining,Backtracking + Forward Chaining,,no,solved,0.0841,171,1.1632,
@@ -118,4 +118,4 @@ timestamp,input_file,size,algorithm_variant,algorithm,heuristic,fc_prune,status,
 2026-04-16T15:15:35,input-10.txt,9x9,A* AC3 + MAC,A* Search,AC3,yes,solved,0.0542,78,1.9485,
 2026-04-16T15:15:39,input-10.txt,9x9,A* MBDT + MAC,A* Search,MBDT,yes,solved,3.8996,3888,192.8165,
 2026-04-16T15:15:39,input-10.txt,9x9,A* MRC + MAC,A* Search,MRC,yes,solved,0.0513,78,1.9490,
-2026-04-16T15:15:39,input-10.txt,9x9,SAT Solver,SAT Solver,,no,solved,0.1237,1151,0.8531,CNF clauses: 10639
+2026-04-16T16:13:21,input-10.txt,9x9,SAT Solver,SAT Solver,,no,solved,0.2332,841,1.5922,CNF clauses: 10639

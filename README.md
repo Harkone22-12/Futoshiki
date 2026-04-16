@@ -1,6 +1,6 @@
 # Futoshiki Solver
 
-Futoshiki puzzle solver with a GUI and benchmark runner.
+Futoshiki puzzle solver with a GUI, benchmark runner, and SAT + Knowledge Base flow.
 
 The project includes multiple approaches:
 
@@ -18,6 +18,8 @@ The project includes multiple approaches:
 - `Source/main.py`: GUI app (Tkinter)
 - `Source/benchmark.py`: benchmark runner
 - `Source/benchmark_worker.py`: subprocess worker used by benchmark
+- `Source/satsolver.py`: SAT solver (Glucose3) that consumes grounded CNF from KB
+- `Source/KB_generator.py`: generates FOL facts and grounded CNF clauses
 - `Source/Inputs/`: input puzzle files
 - `Source/Outputs/`: generated outputs and logs
 
@@ -76,14 +78,47 @@ Recommended full command:
 python Source/benchmark.py --limit 10 --bruteforce-input-limit 2 --case-timeout-sec 120
 ```
 
+SAT-only benchmark command:
+
+```bash
+python Source/benchmark.py --only-sat --limit 10 --case-timeout-sec 120
+```
+
 Useful options:
 
 - `--limit N`: number of input files
 - `--with-sat` / `--no-with-sat`
 - `--with-bruteforce` / `--no-with-bruteforce`
+- `--only-sat`: run SAT Solver only
 - `--bruteforce-input-limit N`
 - `--case-timeout-sec N`
 - `--case-timeout N` (alias)
+
+## Run SAT Solver Script
+
+Run SAT solver directly (default input is configured in `Source/satsolver.py`):
+
+```bash
+python Source/satsolver.py
+```
+
+This script writes:
+
+- `Source/Outputs/output-xx.txt`: solved board format
+- `Source/Outputs/cnf_clauses_log_input-xx.txt`: grounded CNF log used by SAT solver
+
+## Generate KB / Grounded CNF
+
+Run KB generation directly:
+
+```bash
+python Source/KB_generator.py
+```
+
+This script writes:
+
+- `Source/Outputs/ground_kb_input-xx.txt`: fact-oriented KB view
+- `Source/Outputs/KB_ground_CNF_input-xx.txt`: grounded CNF clauses
 
 ## Input File Format
 

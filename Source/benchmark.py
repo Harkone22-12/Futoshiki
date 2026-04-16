@@ -32,7 +32,12 @@ BENCHMARK_HEADER = [
 ]
 
 
-def build_algorithm_matrix(*, include_sat=True, include_bruteforce=True):
+def build_algorithm_matrix(*, include_sat=True, include_bruteforce=True, sat_only=False):
+    if sat_only:
+        if include_sat and SAT_SOLVER_FILE.exists():
+            return [{"label": "SAT Solver", "algo": "SAT Solver", "heur": "", "fc": False}]
+        return []
+
     matrix = [
         {"label": BRUTE_FORCE_LABEL, "algo": BRUTE_FORCE_LABEL, "heur": "", "fc": False},
         {"label": "Backtracking", "algo": "Backtracking", "heur": "", "fc": False},
@@ -175,6 +180,7 @@ def run_benchmark(
     include_bruteforce=True,
     bruteforce_input_limit=2,
     case_timeout_sec=120.0,
+    sat_only=False,
 ):
     OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -185,7 +191,11 @@ def run_benchmark(
     matrix = build_algorithm_matrix(
         include_sat=include_sat,
         include_bruteforce=include_bruteforce,
+        sat_only=sat_only,
     )
+    if not matrix:
+        raise RuntimeError("No algorithm variants selected. Use --with-sat when running --only-sat.")
+
     total_runs = len(input_files) * len(matrix)
 
     print(f"Starting benchmark on {len(input_files)} input files")
@@ -194,7 +204,9 @@ def run_benchmark(
         print(f"Per-case timeout: {case_timeout_sec:.1f}s")
     else:
         print("Per-case timeout: disabled")
-    if include_bruteforce:
+    if sat_only:
+        print("Mode: SAT Solver only")
+    elif include_bruteforce:
         if bruteforce_input_limit > 0:
             print(f"Brute Force mode: run only first {bruteforce_input_limit} input(s)")
             print("Brute Force timeout: disabled for these inputs")
@@ -313,6 +325,11 @@ def parse_args():
         default=120.0,
         help="Timeout per algorithm case in seconds (default: 120, 0 disables timeout)",
     )
+    parser.add_argument(
+        "--only-sat",
+        action="store_true",
+        help="Run benchmark with SAT Solver only",
+    )
     return parser.parse_args()
 
 
@@ -324,4 +341,5 @@ if __name__ == "__main__":
         include_bruteforce=args.with_bruteforce,
         bruteforce_input_limit=max(0, args.bruteforce_input_limit),
         case_timeout_sec=max(0.0, args.case_timeout_sec),
+        sat_only=args.only_sat,
     )
