@@ -9,19 +9,19 @@ The project includes multiple approaches:
 - Backtracking + Forward Chaining
 - Pure Forward Chaining
 - Backward Chaining (SLD)
-- A* (AC3, MBDT, MRC)
-- A* + MAC (AC3, MBDT, MRC)
+- A\* (AC3, MBDT, MRC)
+- A\* + MAC (AC3, MBDT, MRC)
 - SAT Solver (optional)
 
 ## Project Layout
 
 - `Source/main.py`: GUI app (Tkinter)
-- `Source/benchmark.py`: benchmark runner
-- `Source/benchmark_worker.py`: subprocess worker used by benchmark
+- `Source/benchmark.py`: Benchmark runner
+- `Source/benchmark_worker.py`: Subprocess worker used by benchmark
 - `Source/satsolver.py`: SAT solver (Glucose3) that consumes grounded CNF from KB
-- `Source/KB_generator.py`: generates FOL facts and grounded CNF clauses
-- `Source/Inputs/`: input puzzle files
-- `Source/Outputs/`: generated outputs and logs
+- `Source/KB_generator.py`: Generates FOL facts and grounded CNF clauses
+- `Source/Inputs/`: Input puzzle files
+- `Source/Outputs/`: Generated outputs and logs
 
 ## Requirements
 
@@ -37,7 +37,8 @@ python -m pip install -r requirements.txt
 Notes:
 
 - On Windows, `tkinter` is usually included with Python.
-- SAT solver support requires `python-sat`.
+- `python-sat` is required for the SAT solver.
+- `matplotlib` is required for the GUI's charting feature.
 
 ## Run the GUI (`main.py`)
 
@@ -49,11 +50,11 @@ python Source/main.py
 
 In the GUI you can:
 
-- choose an input file from `Source/Inputs`
-- choose algorithm and heuristic
-- run the solver and inspect results
-- save outputs to `Source/Outputs`
-- view charts and logs
+- Choose an input file from `Source/Inputs`
+- Choose algorithm and heuristic
+- Run the solver and inspect results
+- Save outputs to `Source/Outputs`
+- View charts and logs
 
 ## Run Benchmark
 
@@ -65,11 +66,11 @@ python Source/benchmark.py
 
 Current default benchmark behavior:
 
-- up to 10 input files
+- Up to 10 input files
 - Brute Force enabled
 - Brute Force runs fully only for the first 2 input files
 - Brute Force has no timeout on those first 2 inputs
-- all other algorithm cases use 120s timeout
+- All other algorithm cases use 120s timeout
 - SAT case is included if `Source/satsolver.py` exists
 
 Recommended full command:
@@ -158,14 +159,8 @@ Example (`4x4`):
 ## Troubleshooting
 
 - SAT shows error in benchmark:
-	Install SAT dependency:
+  Install SAT dependency:
 
-	```bash
-	python -m pip install python-sat
-	```
-
-- Chart window fails to open:
-
-	```bash
-	python -m pip install matplotlib
-	```
+  ```bash
+  python -m pip install python-sat
+  ```

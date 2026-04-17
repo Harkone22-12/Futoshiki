@@ -490,9 +490,9 @@ class ChartReportController:
 
     def _create_benchmark_figure(self, bench_rows):
         fig = self._Figure(figsize=(15.2, 7.0), dpi=100, facecolor=self.C["fig_bg"])
-        ax_elapsed, ax_success, ax_memory = fig.subplots(1, 3)
+        (ax_elapsed, ax_success), (ax_memory, ax_nodes) = fig.subplots(2, 2)
 
-        for ax in (ax_elapsed, ax_success, ax_memory):
+        for ax in (ax_elapsed, ax_success, ax_memory, ax_nodes):
             ax.set_facecolor(self.C["ax_bg"])
             ax.tick_params(colors=self.C["muted"], labelsize=8)
             for side in ("bottom", "top", "left", "right"):
@@ -616,6 +616,33 @@ class ChartReportController:
             label_max_len=14,
         )
 
+        # Fourth chart: average nodes expanded by algorithm variant
+        nodes_items = []
+        for variant, rows in by_variant.items():
+            node_values = [
+                self._to_float(row.get("nodes"))
+                for row in rows
+            ]
+            node_values = [value for value in node_values if value is not None]
+            if node_values:
+                nodes_items.append((variant, sum(node_values) / len(node_values), len(node_values)))
+
+        nodes_series = [
+            (name, avg)
+            for name, avg, _count in sorted(nodes_items, key=lambda item: item[1])
+        ]
+        self._plot_ranked_horizontal_bars(
+            ax_nodes,
+            series=nodes_series,
+            title="Benchmark: Avg Nodes Expanded",
+            x_label="Nodes",
+            empty_text="No 'nodes' values in benchmark-results.csv",
+            value_fmt=lambda value, _idx: f"{int(round(value)):,}",
+            colors=self._metric_colors(len(nodes_series), base_color="#7c3aed"),
+            min_x=1.0,
+            label_max_len=14,
+        )
+
         status_order = ["solved", "failed", "timeout", "error", "unknown"]
         status_parts = []
         for key in status_order:
@@ -632,7 +659,7 @@ class ChartReportController:
             fontweight="bold",
             y=0.985,
         )
-        fig.tight_layout(rect=[0.01, 0.05, 0.99, 0.94], w_pad=3.0)
+        fig.tight_layout(rect=[0.01, 0.05, 0.99, 0.94], w_pad=3.0, h_pad=4.0)
         return fig
 
     def _render_chart(self):
@@ -701,6 +728,100 @@ class ChartReportController:
             self._set_note(f"Chart image saved: {Path(save_path).name}")
         except Exception as ex:
             messagebox.showerror("Save failed", f"Could not save image.\n{ex}")
+
+    def _export_chart_data(self):
+        """Dispatches to the correct summary export method based on the current data source."""
+        source = self._get_chart_source()
+        if source == "benchmark":
+            self._export_benchmark_summary()
+        elif source == "solve-log":
+            self._export_log_summary()
+        else:
+            messagebox.showinfo("No Data Source", "Please select a data source first.")
+
+    def _export_benchmark_summary(self):
+        """Aggregates and exports benchmark chart data to a CSV file."""
+        bench_rows = self._load_benchmark_rows()
+        if not bench_rows:
+            messagebox.showinfo("No Data", f"'{self.benchmark_file.name}' is empty.")
+            return
+
+        by_variant = {}
+        for row in bench_rows:
+            variant = str(row.get("algorithm_variant", "")).strip() or self._format_algo_from_log_row(row)
+            by_variant.setdefault(variant, []).append(row)
+
+        elapsed_map, memory_map, nodes_map, success_map = {}, {}, {}, {}
+        for variant, rows in by_variant.items():
+            elapsed_vals = [v for r in rows if (v := self._to_float(r.get("elapsed_sec"))) is not None]
+            if elapsed_vals: elapsed_map[variant] = sum(elapsed_vals) / len(elapsed_vals)
+
+            mem_vals = [v for r in rows if (v := self._to_float(r.get("peak_memory_mb"))) is not None]
+            if mem_vals: memory_map[variant] = sum(mem_vals) / len(mem_vals)
+
+            node_vals = [v for r in rows if (v := self._to_float(r.get("nodes"))) is not None]
+            if node_vals: nodes_map[variant] = sum(node_vals) / len(node_vals)
+
+            total = len(rows)
+            if total > 0:
+                solved = sum(1 for r in rows if str(r.get("status", "")).strip().lower() == "solved")
+                success_map[variant] = {"rate": (solved * 100.0) / total, "solved": solved, "total": total}
+
+        header = ["algorithm_variant", "avg_elapsed_sec", "solved_rate_percent", "solved_count", "total_count", "avg_peak_memory_mb", "avg_nodes_expanded"]
+        output_rows = []
+        for variant in sorted(by_variant.keys()):
+            s_info = success_map.get(variant, {})
+            output_rows.append({
+                "algorithm_variant": variant,
+                "avg_elapsed_sec": f"{elapsed_map.get(variant, 0.0):.6f}",
+                "solved_rate_percent": f"{s_info.get('rate', 0.0):.2f}",
+                "solved_count": s_info.get('solved', 0),
+                "total_count": s_info.get('total', 0),
+                "avg_peak_memory_mb": f"{memory_map.get(variant, 0.0):.4f}",
+                "avg_nodes_expanded": f"{nodes_map.get(variant, 0.0):.1f}",
+            })
+
+        default_name = f"benchmark-chart-summary-{datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
+        self._save_summary_csv("Save Benchmark Chart Summary", default_name, header, output_rows)
+
+    def _export_log_summary(self):
+        """Aggregates and exports solve-log chart data to a CSV file."""
+        log_rows = self._load_log_rows()
+        if not log_rows:
+            messagebox.showinfo("No Data", f"'{self.run_log_file.name}' is empty.")
+            return
+
+        output_counts = {}
+        memory_by_algo = {}
+        for row in log_rows:
+            algo = self._format_algo_from_log_row(row)
+            if str(row.get("output_file", "")).strip():
+                output_counts[algo] = output_counts.get(algo, 0) + 1
+            if (mem_value := self._to_float(row.get("peak_memory_mb"))) is not None:
+                memory_by_algo.setdefault(algo, []).append(mem_value)
+        
+        avg_memory_map = {name: sum(values) / len(values) for name, values in memory_by_algo.items() if values}
+
+        header = ["algorithm", "output_file_count", "avg_peak_memory_mb"]
+        all_algos = sorted(set(output_counts.keys()) | set(avg_memory_map.keys()))
+        output_rows = [{"algorithm": algo, "output_file_count": output_counts.get(algo, 0), "avg_peak_memory_mb": f"{avg_memory_map.get(algo, 0.0):.4f}"} for algo in all_algos]
+
+        default_name = f"log-chart-summary-{datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
+        self._save_summary_csv("Save Solve Log Chart Summary", default_name, header, output_rows)
+
+    def _save_summary_csv(self, title, default_name, header, rows):
+        """Handles the file dialog and writing of summary data to a CSV."""
+        save_path = filedialog.asksaveasfilename(title=title, initialdir=str(self.outputs_dir), initialfile=default_name, defaultextension=".csv", filetypes=[("CSV file", "*.csv"), ("All files", "*.*")])
+        if not save_path:
+            return
+        try:
+            with open(save_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=header)
+                writer.writeheader()
+                writer.writerows(rows)
+            self._set_note(f"Chart data saved: {Path(save_path).name}")
+        except Exception as ex:
+            messagebox.showerror("Save failed", f"Could not save CSV file.\n{ex}")
 
     def _create_chart_window(self):
         win = tk.Toplevel(self.root, bg=self.C["ui_bg"])
@@ -785,6 +906,20 @@ class ChartReportController:
             fg=self.C["on_accent"],
             activebackground=self.C["accent_dark"],
             activeforeground=self.C["on_accent"],
+            bd=0,
+            padx=14,
+            pady=6,
+            cursor="hand2",
+        ).pack(side="left", padx=(0, 8))
+
+        tk.Button(
+            buttons,
+            text="Export CSV",
+            command=self._export_chart_data,
+            bg=self.C["control_bg"],
+            fg=self.C["text"],
+            activebackground=self.C["control_active"],
+            activeforeground=self.C["text"],
             bd=0,
             padx=14,
             pady=6,
