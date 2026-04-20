@@ -22,7 +22,7 @@ EFFICIENCY:
 - May explore more nodes but very cheap to compute each
 """
 
-file_path = "Source/Inputs/input-01.txt"
+file_path = "Inputs/input-05.txt"
 
 def read_input(file_path):
     with open(file_path, 'r') as f:
@@ -155,8 +155,7 @@ if __name__ == "__main__":
     input_file = file_path
 
     file_name = os.path.basename(input_file).replace("input", "output")
-    # Đặt file vào thư mục 'Outputs' (ngang hàng với 'Inputs')
-    output_file = os.path.join("Source", "Outputs", file_name)
+    output_file = os.path.join("Outputs", file_name)
     try:
         n, grid, h_cons, v_cons = read_input(input_file)
         print(f"--- Đang giải Futoshiki {n}x{n} bằng A* Search ---")

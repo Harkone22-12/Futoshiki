@@ -5,18 +5,15 @@ from futoshiki_env import FutoshikiEnv
 from KB_generator import KBGenerator
 from pysat.solvers import Glucose3
 
-file_path = "Source/Inputs/input-01.txt"
+file_path = "Inputs/input-09.txt"
 
-# ==========================================
-# 2. CLASS SAT SOLVER (GIẢI BẰNG PURE LOGIC / CNF)
-# ==========================================
 class FutoshikiSATSolver:
     def __init__(self, env):
         self.env = env
         self.n = env.n
-        self.solver = Glucose3() # Khởi tạo cỗ máy suy diễn logic Glucose3
+        self.solver = Glucose3() 
         self.cnf_strings = []
-        self.kb_gen = KBGenerator(env)  # Sử dụng KB Generator
+        self.kb_gen = KBGenerator(env) 
         
     def var_id(self, r, c, v):
         """Ánh xạ trạng thái Val(r, c, v) thành 1 số nguyên dương duy nhất."""
@@ -41,15 +38,11 @@ class FutoshikiSATSolver:
         Dịch chuỗi CNF như '(Val(1,1,1) ∨ Val(1,1,2) ∨ ~Val(2,1,3))'
         thành danh sách ID biến có dấu [-2, 3, 4, ...]
         """
-        # Lấy string đã strip
         clause_str = clause_str.strip()
         
-        # Loại bỏ ngoặc đơn đầu và cuối (CHỈ một cặp)
         if clause_str.startswith('(') and clause_str.endswith(')'):
             clause_str = clause_str[1:-1]
         
-        # Tách các literal qua dấu ∨ (chỉ dấu ∨, không phải V)
-        # Hoặc split by ' V ' (V với spaces) để tránh tách từ trong Val
         literals = re.split(r'∨|\s+V\s+', clause_str)
         
         clause = []
@@ -58,12 +51,10 @@ class FutoshikiSATSolver:
             if not lit:
                 continue
             
-            # Kiểm tra negation
             is_neg = lit.startswith('¬') or lit.startswith('~')
             if is_neg:
                 lit = lit[1:].strip()
             
-            # Parse Val(r, c, v) - extract numbers inside Val(...)
             match = re.search(r'Val\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)', lit)
             if match:
                 r, c, v = int(match.group(1)), int(match.group(2)), int(match.group(3))
@@ -78,21 +69,17 @@ class FutoshikiSATSolver:
         thay vì xây dựng chúng một cách thủ công.
         """
         self.cnf_strings.clear()
-        self.log_strings = [] # Dùng để lưu trữ cả các dòng comment A1, A2,... để in log
+        self.log_strings = [] 
         
-        # Generate ground axioms từ KB Generator
         grounded_axioms = self.kb_gen.ground_axioms()
         
-        # Parse và add từng clause vào solver
         for clause_str in grounded_axioms:
-            # Bỏ qua comment lines và empty lines NHƯNG giữ lại trong log
             if clause_str.strip().startswith("#") or not clause_str.strip():
                 self.log_strings.append(clause_str)
                 continue
             
-            # Convert string clause to integer clause
             clause = self.string_to_clause(clause_str)
-            if clause:  # Nếu clause không rỗng
+            if clause:  
                 self.solver.add_clause(clause)
                 self.cnf_strings.append(clause_str)
                 self.log_strings.append(clause_str)
@@ -104,13 +91,12 @@ class FutoshikiSATSolver:
         if self.solver.solve():
             model = self.solver.get_model()
             
-            # ĐÃ XÓA DÒNG PRINT Ở ĐÂY. Chỉ ngầm lấy số liệu để truyền ra ngoài.
             stats = self.solver.accum_stats()
             decisions = stats['decisions'] 
 
             solution_grid = [[0 for _ in range(self.n)] for _ in range(self.n)]
             for var in model:
-                if var > 0: # Chỉ lấy các mệnh đề Đúng (True)
+                if var > 0: 
                     v = (var - 1) % self.n + 1
                     c = ((var - 1) // self.n) % self.n + 1
                     r = ((var - 1) // (self.n * self.n)) + 1
@@ -118,14 +104,10 @@ class FutoshikiSATSolver:
                     
             return solution_grid, decisions
         else:
-            # Nếu vô nghiệm, vẫn trả về decisions để đo xem đã tìm bao nhiêu node rồi bỏ cuộc
             stats = self.solver.accum_stats()
             return None, stats['decisions'] 
 
 
-# ==========================================
-# 3. HELPER FUNCTIONS & MAIN EXECUTION
-# ==========================================
 def load_env_from_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         lines = [line.strip() for line in f.readlines() if line.strip() and not line.startswith('#')]
@@ -195,9 +177,8 @@ def save_solution_to_file(output_path, n, grid, env):
 if __name__ == "__main__":
     input_file = file_path
     
-    # --- TỰ ĐỘNG SINH ĐƯỜNG DẪN OUTPUT ---
     file_name = os.path.basename(input_file).replace("input", "output")
-    output_file = os.path.join("Source", "Outputs", file_name)
+    output_file = os.path.join("Outputs", file_name)
     
     try:
         env = load_env_from_file(input_file)
@@ -209,9 +190,8 @@ if __name__ == "__main__":
         total_clauses = len(sat_solver.cnf_strings)
         print(f"[+] SAT Solver created {total_clauses} CNF clauses.")
 
-        os.makedirs("Source/Outputs", exist_ok=True)
         base_name = os.path.basename(input_file).replace('.txt', '')
-        log_file = os.path.join("Source", "Outputs", f"cnf_clauses_log_{base_name}.txt")
+        log_file = os.path.join("Outputs", f"cnf_clauses_log_{base_name}.txt")
         with open(log_file, "w", encoding="utf-8") as f:
             f.write(f"TOTAL CNF CLAUSES: {total_clauses}\n")
             f.write("\n".join(sat_solver.log_strings))
@@ -219,7 +199,6 @@ if __name__ == "__main__":
         
         start_time = time.time()
         
-        # Unpack tuple
         solution, decisions = sat_solver.solve()
         
         end_time = time.time()

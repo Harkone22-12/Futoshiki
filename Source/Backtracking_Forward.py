@@ -1,22 +1,15 @@
 import time
 import os
-from futoshiki_env import FutoshikiEnv  # Import class môi trường chuẩn của bạn
+from futoshiki_env import FutoshikiEnv  
 
-file_path = "Source/Inputs/input-01.txt"
+file_path = "Inputs/input-06.txt"
 
-# ==========================================
-# 1. CLASS KNOWLEDGE BASE
-# ==========================================
 class KnowledgeBase:
     def __init__(self, n):
         self.n = n
-        # Khởi tạo domain cho mọi ô là tập hợp {1, 2, ..., n}
         self.domains = [[set(range(1, n + 1)) for _ in range(n)] for _ in range(n)]
-        self.facts = [] # Chứa các tuple (r, c, val) đã được chốt từ đề bài
+        self.facts = []
 
-# ==========================================
-# 2. CLASS FORWARD CHAINING (DO BẠN CUNG CẤP)
-# ==========================================
 class ForwardChaining:
     def __init__(self, kb, env):
         self.kb = kb
@@ -24,20 +17,13 @@ class ForwardChaining:
         self.n = env.n
 
     def execute(self, agenda=None):
-        """
-        Thực thi thuật toán Forward Chaining.
-        Trả về True nếu suy diễn thành công (không có mâu thuẫn).
-        Trả về False nếu phát hiện mâu thuẫn logic (domain rỗng).
-        """
         if agenda is None:
             agenda = self.kb.facts.copy()
             
         while agenda:
             r, c, val = agenda.pop(0)
             
-            # --- 1. Áp dụng luật All-Different (Hàng và Cột) ---
             for i in range(self.n):
-                # Thu hẹp domain trên cùng Cột
                 if i != r and val in self.kb.domains[i][c]:
                     self.kb.domains[i][c].remove(val)
                     if len(self.kb.domains[i][c]) == 1:
@@ -45,7 +31,6 @@ class ForwardChaining:
                     elif len(self.kb.domains[i][c]) == 0:
                         return False
 
-                # Thu hẹp domain trên cùng Hàng
                 if i != c and val in self.kb.domains[r][i]:
                     self.kb.domains[r][i].remove(val)
                     if len(self.kb.domains[r][i]) == 1:
@@ -53,11 +38,9 @@ class ForwardChaining:
                     elif len(self.kb.domains[r][i]) == 0:
                         return False
 
-            # --- 2. Áp dụng luật Bất đẳng thức ---
             for constraint in self.env.constraints_list:
                 ctype, r1, c1, r2, c2 = constraint
                 
-                # TH1: Sự kiện hiện tại nằm ở Vế Trái của bất đẳng thức
                 if r == r1 and c == c1:
                     to_remove = []
                     for v2 in self.kb.domains[r2][c2]:
@@ -71,7 +54,6 @@ class ForwardChaining:
                         elif len(self.kb.domains[r2][c2]) == 0:
                             return False
 
-                # TH2: Sự kiện hiện tại nằm ở Vế Phải của bất đẳng thức
                 elif r == r2 and c == c2:
                     to_remove = []
                     for v1 in self.kb.domains[r1][c1]:
@@ -87,9 +69,6 @@ class ForwardChaining:
                             
         return True
 
-# ==========================================
-# 3. THUẬT TOÁN ĐỆ QUY KẾT HỢP FORWARD CHAINING
-# ==========================================
 def extract_grid(domains, n):
     """Lấy kết quả từ bảng domain khi tất cả các ô chỉ còn 1 số."""
     return [[list(domains[r][c])[0] for c in range(n)] for r in range(n)]
@@ -99,17 +78,16 @@ def solve_with_bfc(kb, env, node_counter=None):
     Thuật toán Backtracking sử dụng Forward Chaining làm lõi gọt domain.
     CÓ TÍCH HỢP ĐẾM NODE.
     """
-    # Khởi tạo bộ đếm ở tầng đệ quy đầu tiên
     if node_counter is None:
         node_counter = [0]
         
-    node_counter[0] += 1 # Đếm 1 node khi mở rộng trạng thái
+    node_counter[0] += 1 
 
     is_solved = True
     best_r, best_c = -1, -1
     min_options = env.n + 1
 
-    # Tìm ô trống có ít sự lựa chọn nhất (MRV)
+
     for r in range(env.n):
         for c in range(env.n):
             opts = len(kb.domains[r][c])
@@ -119,13 +97,11 @@ def solve_with_bfc(kb, env, node_counter=None):
                     min_options = opts
                     best_r, best_c = r, c
             elif opts == 0:
-                return None, node_counter[0] # Báo ngõ cụt
+                return None, node_counter[0]
 
-    # Base case: Đã giải xong
     if is_solved:
         return extract_grid(kb.domains, env.n), node_counter[0]
 
-    # Đoán giá trị cho ô đã chọn
     for val in list(kb.domains[best_r][best_c]):
         next_kb = KnowledgeBase(env.n)
         next_kb.domains = [[set(d) for d in row] for row in kb.domains]
@@ -135,18 +111,13 @@ def solve_with_bfc(kb, env, node_counter=None):
         
         fc = ForwardChaining(next_kb, env)
         if fc.execute(agenda): 
-            # Truyền bộ đếm xuống các tầng đệ quy sâu hơn
             result = solve_with_bfc(next_kb, env, node_counter) 
             
-            # Nếu nhánh con trả về thành công (có ma trận khác None)
             if result and result[0] is not None:
                 return result
 
     return None, node_counter[0]
 
-# ==========================================
-# 4. HELPER FUNCTIONS & MAIN
-# ==========================================
 def load_env_from_file(file_path):
     with open(file_path, 'r') as f:
         lines = [line.strip() for line in f.readlines() if line.strip() and not line.startswith('#')]
@@ -212,16 +183,15 @@ def save_solution_to_file(output_path, n, grid, env):
 
 
 if __name__ == "__main__":
-    input_file = file_path # Sửa lại đường dẫn của bạn tại đây
+    input_file = file_path
     
     file_name = os.path.basename(input_file).replace("input", "output")
-    output_file = os.path.join("Source", "Outputs", file_name)
+    output_file = os.path.join("Outputs", file_name)
 
     try:
         env = load_env_from_file(input_file)
         print(f"--- Đang giải Futoshiki {env.n}x{env.n} bằng BACKTRACKING + FORWARD CHAINING ---")
         
-        # 1. Khởi tạo KB ban đầu
         initial_kb = KnowledgeBase(env.n)
         for r in range(env.n):
             for c in range(env.n):
@@ -231,13 +201,10 @@ if __name__ == "__main__":
                     
         start_time = time.time()
         
-        # 2. Chạy FC lần đầu tiên để xử lý các con số có sẵn
         fc_init = ForwardChaining(initial_kb, env)
         if fc_init.execute():
-            # 3. Chạy đệ quy để giải quyết các ô trống còn lại
             result = solve_with_bfc(initial_kb, env) 
             
-            # TÁCH TUPLE Ở ĐÂY:
             if result is not None:
                 solution_grid, nodes_expanded = result
             else:

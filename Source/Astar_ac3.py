@@ -21,7 +21,7 @@ EFFICIENCY:
 - Good balance between heuristic quality and computation time
 """
 
-file_path = "Source/Inputs/input-01.txt"
+file_path = "Inputs/input-09.txt"
 
 def read_input(file_path):
     with open(file_path, 'r') as f:
@@ -77,16 +77,12 @@ def heuristic(grid, n, h_cons, v_cons):
         for c in range(n):
             if grid[r][c] == 0:
                 empty_cells += 1
-                
-                # Đếm số lượng lựa chọn hợp lệ (domain size) cho ô trống này
+ 
                 options = sum(1 for val in range(1, n + 1) if is_valid(grid, n, r, c, val, h_cons, v_cons))
                 
-                # Nếu phát hiện có ô trống nhưng KHÔNG CÓ SỐ NÀO ĐIỀN HỢP LỆ (Domain = 0)
-                # -> Đây là ngõ cụt (infeasible), trả về vô cực để A* cắt tỉa nhánh này ngay lập tức.
                 if options == 0:
                     return float('inf')
-                    
-    # Nếu không có ô nào bị rỗng miền giá trị, trả về số ô cần điền
+
     return empty_cells
 
 def solve_astar_ac3(initial_grid, n, h_cons, v_cons):
@@ -144,8 +140,6 @@ def solve_astar_ac3(initial_grid, n, h_cons, v_cons):
     return False, nodes_expanded
 
 def save_solution_to_file(output_path, n, grid, h_cons, v_cons):
-    """Lưu lưới kết quả và các dấu bất đẳng thức ra file text."""
-    # Tự động tạo thư mục Outputs nếu nó chưa tồn tại
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
     with open(output_path, 'w', encoding='utf-8') as f:
@@ -170,19 +164,15 @@ def save_solution_to_file(output_path, n, grid, h_cons, v_cons):
 if __name__ == "__main__":
     input_file = file_path
     
-    # --- TỰ ĐỘNG SINH ĐƯỜNG DẪN OUTPUT ---
-    # Lấy tên file gốc (vd: 'input-01.txt') và đổi chữ 'input' thành 'output'
     file_name = os.path.basename(input_file).replace("input", "output")
-    # Đặt file vào thư mục 'Outputs' (ngang hàng với 'Inputs')
-    output_file = os.path.join("Source", "Outputs", file_name)
+    output_file = os.path.join("Outputs", file_name)
     
     try:
         n, grid, h_cons, v_cons = read_input(input_file)
         print(f"--- Đang giải Futoshiki {n}x{n} bằng A* Search (AC3 Heuristic) ---")
         
         start_time = time.time()
-        
-        # GỠ GÓI TUPLE Ở ĐÂY: lấy kết quả (True/False) và số node
+
         is_solved, nodes_expanded = solve_astar_ac3(grid, n, h_cons, v_cons)
         
         if is_solved:
@@ -191,7 +181,6 @@ if __name__ == "__main__":
             print(f"\nThời gian chạy: {time.time() - start_time:.4f}s")
             print(f"Số Node đã mở rộng (Expansion count): {nodes_expanded}")
             
-            # GỌI HÀM LƯU FILE Ở ĐÂY
             save_solution_to_file(output_file, n, grid, h_cons, v_cons)
             print(f"--> Đã lưu kết quả thành công vào: {output_file}")
             

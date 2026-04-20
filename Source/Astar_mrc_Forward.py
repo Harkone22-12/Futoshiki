@@ -26,11 +26,8 @@ EFFICIENCY:
 - Very practical approach with minimal overhead
 """
 
-file_path = "Source/Inputs/input-01.txt"
+file_path = "Inputs/input-09.txt"
 
-# ==========================================
-# 2. CLASS SINH LUẬT (KB GENERATOR) DÀNH CHO BÁO CÁO
-# ==========================================
 class KBGenerator:
     def __init__(self, env):
         self.env = env
@@ -82,19 +79,12 @@ class KBGenerator:
         kb_text += "\n".join(self.axioms)
         return kb_text
 
-# ==========================================
-# 3. CLASS KNOWLEDGE BASE (NỀN TẢNG CHO FORWARD CHAINING)
-# ==========================================
 class KnowledgeBase:
     def __init__(self, n):
         self.n = n
-        # Khởi tạo domain cho mọi ô là {1, 2, ..., n}
         self.domains = [[set(range(1, n + 1)) for _ in range(n)] for _ in range(n)]
-        self.facts = [] # Chứa các tuple (r, c, val) đã được chốt
+        self.facts = [] 
 
-# ==========================================
-# 4. CLASS FORWARD CHAINING (SUY DIỄN RÀNG BUỘC)
-# ==========================================
 class ForwardChaining:
     def __init__(self, kb, env):
         self.kb = kb
@@ -108,7 +98,6 @@ class ForwardChaining:
         while agenda:
             r, c, val = agenda.pop(0)
             
-            # --- Áp dụng All-Different ---
             for i in range(self.n):
                 if i != r and val in self.kb.domains[i][c]:
                     self.kb.domains[i][c].remove(val)
@@ -123,8 +112,7 @@ class ForwardChaining:
                         agenda.append((r, i, list(self.kb.domains[r][i])[0]))
                     elif len(self.kb.domains[r][i]) == 0:
                         return False
-
-            # --- Áp dụng Bất đẳng thức ---
+                    
             for constraint in self.env.constraints_list:
                 ctype, r1, c1, r2, c2 = constraint
                 
@@ -147,9 +135,6 @@ class ForwardChaining:
                             return False
         return True
 
-# ==========================================
-# 5. THUẬT TOÁN A* TÍCH HỢP FORWARD CHAINING (MAC)
-# ==========================================
 def extract_grid(domains, n):
     """Trích xuất lưới kết quả từ domains khi tất cả các ô đều chỉ còn 1 giá trị."""
     return [[list(domains[r][c])[0] for c in range(n)] for r in range(n)]
@@ -163,7 +148,6 @@ def get_state_tuple(domains):
     return tuple(tuple(tuple(sorted(d)) for d in row) for row in domains)
 
 def solve_astar_mac_mrc(env):
-    # Khởi tạo KB ban đầu từ Môi trường
     initial_kb = KnowledgeBase(env.n)
     for r in range(env.n):
         for c in range(env.n):
@@ -171,18 +155,15 @@ def solve_astar_mac_mrc(env):
                 initial_kb.domains[r][c] = {env.grid[r][c]}
                 initial_kb.facts.append((r, c, env.grid[r][c]))
                 
-    # Tiền xử lý (Pre-processing): Chạy FC lần đầu tiên
     fc_init = ForwardChaining(initial_kb, env)
     if not fc_init.execute():
-        return None # Đề bài vô nghiệm từ đầu
+        return None
 
-    # Thiết lập A*
     g_cost = 0
     h_cost = heuristic_mac(initial_kb.domains, env.n)
     tie_breaker = 0
     
     pq = []
-    # Lưu KB vào hàng đợi thay vì chỉ lưu grid
     heapq.heappush(pq, (g_cost + h_cost, -g_cost, tie_breaker, get_state_tuple(initial_kb.domains), initial_kb.domains))
     visited = set()
 
@@ -197,7 +178,6 @@ def solve_astar_mac_mrc(env):
             continue
         visited.add(state_tup)
         
-        # Áp dụng MRV: Tìm ô trống có số lượng domain nhỏ nhất
         best_r, best_c = -1, -1
         min_options = env.n + 1
         
@@ -208,25 +188,19 @@ def solve_astar_mac_mrc(env):
                     min_options = opts
                     best_r, best_c = r, c
                     
-        # Nếu không còn ô nào có opts > 1 -> Đã giải xong!
         if best_r == -1:
             return extract_grid(current_domains, env.n), nodes_expanded
             
-        # Thử điền từng giá trị vào ô (best_r, best_c)
         for val in current_domains[best_r][best_c]:
-            # Tạo một KB mới cho nhánh này
             next_kb = KnowledgeBase(env.n)
-            next_kb.domains = [ [set(d) for d in row] for row in current_domains ] # Deep copy thủ công
+            next_kb.domains = [ [set(d) for d in row] for row in current_domains ]
             
-            # Gán giá trị
             next_kb.domains[best_r][best_c] = {val}
             agenda = [(best_r, best_c, val)]
             
-            # Chạy Forward Chaining trên nhánh mới
             fc = ForwardChaining(next_kb, env)
             is_valid_branch = fc.execute(agenda)
             
-            # Nếu FC trả về True (không mâu thuẫn), tính toán và đẩy vào PQ
             if is_valid_branch:
                 new_state_tup = get_state_tuple(next_kb.domains)
                 if new_state_tup not in visited:
@@ -237,9 +211,6 @@ def solve_astar_mac_mrc(env):
 
     return None, nodes_expanded
 
-# ==========================================
-# 6. HÀM MAIN - KẾT NỐI LUỒNG CHẠY
-# ==========================================
 def load_env_from_file(file_path):
     with open(file_path, 'r') as f:
         lines = [line.strip() for line in f.readlines() if line.strip() and not line.startswith('#')]
@@ -253,14 +224,12 @@ def load_env_from_file(file_path):
             if row_vals[j] != 0:
                 env.set_given_value(i-1, j, row_vals[j])
                 
-    # Nạp Horizontal Constraints
     for i in range(n + 1, 2 * n + 1):
         row_vals = [int(x) for x in lines[i].split(',')]
         for j in range(n-1):
             if row_vals[j] != 0:
                 env.add_horizontal_constraint(i - (n + 1), j, row_vals[j])
-                
-    # Nạp Vertical Constraints
+
     for i in range(2 * n + 1, 3 * n):
         row_vals = [int(x) for x in lines[i].split(',')]
         for j in range(n):
@@ -288,8 +257,6 @@ def print_solution(n, grid, env):
             print(v_str.rstrip())
 
 def save_solution_to_file(output_path, n, grid, env):
-    """Hàm lưu kết quả Futoshiki ra file text."""
-    # Tự động tạo thư mục Outputs nếu nó chưa tồn tại để tránh lỗi
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
     with open(output_path, 'w', encoding='utf-8') as f:
@@ -312,13 +279,10 @@ def save_solution_to_file(output_path, n, grid, env):
                 f.write(v_str.rstrip() + "\n")
 
 if __name__ == "__main__":
-    input_file = file_path # Đổi đường dẫn file nếu cần
+    input_file = file_path 
     
-    # --- TỰ ĐỘNG SINH ĐƯỜNG DẪN OUTPUT ---
-    # Lấy tên file gốc (vd: 'input-10.txt') và đổi chữ 'input' thành 'output'
     file_name = os.path.basename(input_file).replace("input", "output")
-    # Đặt file vào thư mục 'Outputs' nằm ngang hàng với 'Inputs'
-    output_file = os.path.join("Source\Outputs", file_name)
+    output_file = os.path.join("Outputs", file_name)
 
     print(f"BƯỚC 1: Đọc dữ liệu từ {input_file} vào Môi trường (FutoshikiEnv)...")
     try:

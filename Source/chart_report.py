@@ -521,13 +521,19 @@ class ChartReportController:
 
         elapsed_items = []
         for variant, rows in by_variant.items():
+            solved_rows = [row for row in rows if str(row.get("status", "")).strip().lower() == "solved"]
+            solved_count = len(solved_rows)
+
             elapsed_values = [
                 self._to_float(row.get("elapsed_sec"))
-                for row in rows
+                for row in solved_rows
             ]
             elapsed_values = [value for value in elapsed_values if value is not None]
+
             if elapsed_values:
-                elapsed_items.append((variant, sum(elapsed_values) / len(elapsed_values), len(elapsed_values)))
+                total_time = sum(elapsed_values)
+                avg_time = total_time / solved_count if solved_count > 0 else 0.0
+                elapsed_items.append((variant, avg_time, len(elapsed_values)))
 
         elapsed_series = [
             (name, avg)
@@ -592,13 +598,19 @@ class ChartReportController:
 
         memory_items = []
         for variant, rows in by_variant.items():
+            solved_rows = [row for row in rows if str(row.get("status", "")).strip().lower() == "solved"]
+            solved_count = len(solved_rows)
+
             mem_values = [
                 self._to_float(row.get("peak_memory_mb"))
-                for row in rows
+                for row in solved_rows
             ]
             mem_values = [value for value in mem_values if value is not None]
+
             if mem_values:
-                memory_items.append((variant, sum(mem_values) / len(mem_values), len(mem_values)))
+                total_mem = sum(mem_values)
+                avg_mem = total_mem / solved_count if solved_count > 0 else 0.0
+                memory_items.append((variant, avg_mem, len(mem_values)))
 
         memory_series = [
             (name, avg)
@@ -619,13 +631,19 @@ class ChartReportController:
         # Fourth chart: average nodes expanded by algorithm variant
         nodes_items = []
         for variant, rows in by_variant.items():
+            solved_rows = [row for row in rows if str(row.get("status", "")).strip().lower() == "solved"]
+            solved_count = len(solved_rows)
+
             node_values = [
                 self._to_float(row.get("nodes"))
-                for row in rows
+                for row in solved_rows
             ]
             node_values = [value for value in node_values if value is not None]
+
             if node_values:
-                nodes_items.append((variant, sum(node_values) / len(node_values), len(node_values)))
+                total_nodes = sum(node_values)
+                avg_nodes = total_nodes / solved_count if solved_count > 0 else 0.0
+                nodes_items.append((variant, avg_nodes, len(node_values)))
 
         nodes_series = [
             (name, avg)
@@ -753,14 +771,22 @@ class ChartReportController:
 
         elapsed_map, memory_map, nodes_map, success_map = {}, {}, {}, {}
         for variant, rows in by_variant.items():
-            elapsed_vals = [v for r in rows if (v := self._to_float(r.get("elapsed_sec"))) is not None]
-            if elapsed_vals: elapsed_map[variant] = sum(elapsed_vals) / len(elapsed_vals)
 
-            mem_vals = [v for r in rows if (v := self._to_float(r.get("peak_memory_mb"))) is not None]
-            if mem_vals: memory_map[variant] = sum(mem_vals) / len(mem_vals)
+            solved_rows = [r for r in rows if str(r.get("status", "")).strip().lower() == "solved"]
+            solved_count = len(solved_rows)
 
-            node_vals = [v for r in rows if (v := self._to_float(r.get("nodes"))) is not None]
-            if node_vals: nodes_map[variant] = sum(node_vals) / len(node_vals)
+            elapsed_vals = [v for r in solved_rows if (v := self._to_float(r.get("elapsed_sec"))) is not None]
+            if elapsed_vals: 
+                total_time = sum(elapsed_vals)
+                elapsed_map[variant] = total_time / solved_count if solved_count > 0 else 0.0
+
+            mem_vals = [v for r in solved_rows if (v := self._to_float(r.get("peak_memory_mb"))) is not None]
+            if mem_vals: 
+                memory_map[variant] = sum(mem_vals) / solved_count if solved_count > 0 else 0.0
+
+            node_vals = [v for r in solved_rows if (v := self._to_float(r.get("nodes"))) is not None]
+            if node_vals: 
+                nodes_map[variant] = sum(node_vals) / solved_count if solved_count > 0 else 0.0
 
             total = len(rows)
             if total > 0:

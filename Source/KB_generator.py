@@ -1,26 +1,12 @@
-class KBGenerator:
-    """
-    Knowledge Base Generator cho Futoshiki Puzzle.
-    Sinh ra các dữ kiện (Facts) từ puzzle instance và các tiên đề (Axioms) FOL.
-    """
-    
+class KBGenerator: 
     def __init__(self, env):
-        """
-        Khởi tạo KB Generator.
-        :param env: FutoshikiEnv object chứa grid, constraints
-        """
         self.env = env
         self.n = env.n
-        self.facts = []      # Chứa các dữ kiện From Puzzle Instance
-        self.axioms = []     # Chứa các tiên đề FOL của Futoshiki
+        self.facts = []     
+        self.axioms = []    
     
     @staticmethod
     def load_from_file(file_path):
-        """
-        Tạo KBGenerator từ file input.
-        :param file_path: Đường dẫn đến file input (ví dụ: Source/Inputs/input-01.txt)
-        :return: KBGenerator object
-        """
         from futoshiki_env import FutoshikiEnv
         
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -30,21 +16,18 @@ class KBGenerator:
         n = int(lines[0])
         env = FutoshikiEnv(n)
         
-        # === Đọc Grid (Given Values) ===
         for i in range(1, n + 1):
             row_vals = [int(x) for x in lines[i].split(',')]
             for j in range(n):
                 if row_vals[j] != 0:
                     env.set_given_value(i - 1, j, row_vals[j])
         
-        # === Đọc Horizontal Constraints ===
         for i in range(n + 1, 2 * n + 1):
             row_vals = [int(x) for x in lines[i].split(',')]
             for j in range(n - 1):
                 if row_vals[j] != 0:
                     env.add_horizontal_constraint(i - (n + 1), j, row_vals[j])
         
-        # === Đọc Vertical Constraints ===
         for i in range(2 * n + 1, 3 * n):
             row_vals = [int(x) for x in lines[i].split(',')]
             for j in range(n):
@@ -54,14 +37,8 @@ class KBGenerator:
         return KBGenerator(env)
 
     def generate_facts(self):
-        """
-        Trích xuất dữ kiện (Facts) từ puzzle instance.
-        - Given clues: Các ô đã được điền
-        - Constraint facts: LessH, GreaterH, LessV, GreaterV
-        """
         self.facts.clear()
         
-        # === DỮ KIỆN 1: Các ô cho trước (Given Clues) ===
         self.facts.append("# --- Given Clues (A9) ---")
         for r in range(self.n):
             for c in range(self.n):
@@ -290,12 +267,10 @@ class KBGenerator:
         
         kb_text = ""
         
-        # === Đếm số mệnh đề thực sự (bỏ comment và dòng trống) ===
         actual_clauses = [c for c in grounded_axioms if not c.strip().startswith("#") and c.strip()]
         kb_text += f"Total CNF Clauses: {len(actual_clauses)}\n"
         kb_text += "\n"
         
-        # Ghi toàn bộ nội dung gồm cả comment ra file
         for line in grounded_axioms:
             kb_text += f"{line}\n"
         
@@ -313,16 +288,10 @@ class KBGenerator:
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(kb_text)
 
-
-# ============================================================================
-# TEST & DEMO - Generate CNF from Input File
-# ============================================================================
-
 if __name__ == "__main__":
     import os
     from futoshiki_env import FutoshikiEnv
     
-    # ===== LOAD INPUT FILE =====
     input_file = "Source/Inputs/input-01.txt"
     
     if not os.path.exists(input_file):
@@ -330,13 +299,10 @@ if __name__ == "__main__":
         exit(1)
     
     try:
-        # Load KB from input file (quietly)
         kb_gen = KBGenerator.load_from_file(input_file)
         
-        # Lấy tên file gốc (ví dụ: 'input-01')
         base_name = os.path.basename(input_file).replace('.txt', '')
         
-        # Save FOL KB (full knowledge base with axioms)
         full_kb = kb_gen.get_full_kb()
         ground_output_path = os.path.join("Source", "Outputs", f"ground_kb_{base_name}.txt")
         os.makedirs(os.path.dirname(ground_output_path), exist_ok=True)
@@ -344,8 +310,7 @@ if __name__ == "__main__":
             f.write(full_kb)
             
         print("✓ Ground KB saved successfully")
-        
-        # Save CNF/Grounded KB (with CNF clauses)
+
         cnf_kb = kb_gen.get_ground_kb()
         output_path = os.path.join("Source", "Outputs", f"KB_ground_CNF_{base_name}.txt")
         os.makedirs(os.path.dirname(output_path), exist_ok=True)

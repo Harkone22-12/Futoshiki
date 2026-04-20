@@ -106,7 +106,7 @@ def _stderr_tail(stderr_text):
     return lines[-1]
 
 
-def run_case(payload, timeout_sec=300.0):
+def run_case(payload, timeout_sec=10.0):
     started = time.perf_counter()
     worker_path = BASE_DIR / "benchmark_worker.py"
     command = [
@@ -179,7 +179,7 @@ def run_benchmark(
     include_sat=True,
     include_bruteforce=True,
     bruteforce_input_limit=2,
-    case_timeout_sec=120.0,
+    case_timeout_sec=10.0,
     sat_only=False,
 ):
     OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -314,16 +314,16 @@ def parse_args():
     parser.add_argument(
         "--bruteforce-input-limit",
         type=int,
-        default=2,
-        help="Run Brute Force only for the first N input files (default: 2)",
+        default=1,
+        help="Run Brute Force only for the first N input files (default: 1)",
     )
     parser.add_argument(
         "--case-timeout-sec",
         "--case-timeout",
         dest="case_timeout_sec",
         type=float,
-        default=120.0,
-        help="Timeout per algorithm case in seconds (default: 120, 0 disables timeout)",
+        default=10.0,
+        help="Timeout per algorithm case in seconds (default: 10, 0 disables timeout)",
     )
     parser.add_argument(
         "--only-sat",
