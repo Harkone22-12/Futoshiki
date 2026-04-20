@@ -4,27 +4,6 @@ import copy
 import os
 from futoshiki_env import FutoshikiEnv
 
-"""
-A* + FORWARD CHAINING WITH MBDT (MINIMUM BRANCHING DEGREE TIEBREAKER)
-===================================================================
-
-Combines A* with Forward Chaining and MBDT heuristic.
-
-Heuristic: h(s) = Empty cells × (1 - branching factor) with FC propagation
-
-ADMISSIBILITY ANALYSIS:
-- MBDT prioritizes cells with smallest domain (least flexible)
-- Forward chaining propagates value assignments immediately
-- h(s) never overestimates remaining work
-- MBDT + FC often finds solutions faster than AC-3 on sparse constraints
-- CONCLUSION: This heuristic is ADMISSIBLE
-
-EFFICIENCY:
-- Faster than AC-3+FC but slightly slower than pure MBDT
-- Good for puzzles with moderate constraint density
-- Excellent balance of speed and solution quality
-"""
-
 file_path = "Inputs/input-09.txt"
 
 class KBGenerator:

@@ -1,223 +1,162 @@
 import heapq
 import time
-import copy
 import os
 from futoshiki_env import FutoshikiEnv
 
-"""
-A* + FORWARD CHAINING WITH AC-3 (MAC - MAINTAINING ARC CONSISTENCY)
-==================================================================
-
-Combines A* with Forward Chaining and AC-3 constraint propagation.
-
-Heuristic: h(s) = Number of empty cells after AC-3 + Forward Chaining
-
-ADMISSIBILITY ANALYSIS:
-- AC-3 + FC work together to prune impossible assignments
-- h(s) is the count of remaining unassigned cells post-pruning
-- This is the minimum possible remaining work
-- Forward chaining may detect contradictions early (domain wipeout)
-- CONCLUSION: This heuristic is ADMISSIBLE
-
-EFFICIENCY:
-- More expensive than pure AC-3 due to forward chaining
-- But catches contradictions much earlier
-- Reduces search tree significantly on hard instances
-"""
-
 file_path = "Inputs/input-09.txt"
 
-class KBGenerator:
-    def __init__(self, env):
-        self.env = env
-        self.n = env.n
-        self.facts = []
-        self.axioms = []
+def check_constraint(x, y, r1, c1, r2, c2, env):
+    if r1 == r2 and x == y: return False
+    if c1 == c2 and x == y: return False
 
-    def generate_facts(self):
-        self.facts.clear()
-        for r in range(self.n):
-            for c in range(self.n):
-                val = self.env.grid[r][c]
-                if val != 0:
-                    self.facts.append(f"Given({r+1}, {c+1}, {val})")
+    if r1 == r2:
+        if c1 == c2 - 1: 
+            op = env.horiz_constraints[r1][c1]
+            if op == 1 and not (x < y): return False
+            if op == -1 and not (x > y): return False
+        elif c1 == c2 + 1: 
+            op = env.horiz_constraints[r2][c2]
+            if op == 1 and not (y < x): return False
+            if op == -1 and not (y > x): return False
+            
+    if c1 == c2:
+        if r1 == r2 - 1: 
+            op = env.vert_constraints[r1][c1]
+            if op == 1 and not (x < y): return False
+            if op == -1 and not (x > y): return False
+        elif r1 == r2 + 1: 
+            op = env.vert_constraints[r2][c2]
+            if op == 1 and not (y < x): return False
+            if op == -1 and not (y > x): return False
+            
+    return True
+
+def revise(domains, r1, c1, r2, c2, env):
+    revised = False
+    to_remove = set()
+    
+    for x in domains[r1][c1]:
+        satisfies = False
+        for y in domains[r2][c2]:
+            if check_constraint(x, y, r1, c1, r2, c2, env):
+                satisfies = True
+                break
+        if not satisfies:
+            to_remove.add(x)
+            revised = True
+            
+    if revised:
+        domains[r1][c1] -= to_remove
         
-        for r in range(self.n):
-            for c in range(self.n - 1):
-                if self.env.horiz_constraints[r][c] == 1:
-                    self.facts.append(f"LessH({r+1}, {c+1})")
-                elif self.env.horiz_constraints[r][c] == -1:
-                    self.facts.append(f"GreaterH({r+1}, {c+1})")
+    return revised
+
+def true_ac3(domains, env, initial_queue=None):
+    n = env.n
+    queue = initial_queue
+    
+    if queue is None:
+        queue = []
+        for r in range(n):
+            for c in range(n):
+                for i in range(n):
+                    if i != c: queue.append(((r, c), (r, i)))
+                    if i != r: queue.append(((r, c), (i, c)))
                     
-        for r in range(self.n - 1):
-            for c in range(self.n):
-                if self.env.vert_constraints[r][c] == 1:
-                    self.facts.append(f"LessV({r+1}, {c+1})")
-                elif self.env.vert_constraints[r][c] == -1:
-                    self.facts.append(f"GreaterV({r+1}, {c+1})")
+    while queue:
+        (r1, c1), (r2, c2) = queue.pop(0)
+        
+        if revise(domains, r1, c1, r2, c2, env):
+            if len(domains[r1][c1]) == 0:
+                return False 
 
-    def generate_axioms(self):
-        self.axioms.clear()
-        self.axioms.append("A1: ∀i ∀j ∃v Val(i, j, v)")
-        self.axioms.append("A2: ∀i ∀j ∀v1 ∀v2 (Val(i, j, v1) ∧ Val(i, j, v2) => v1 = v2)")
-        self.axioms.append("A3: ∀i ∀j1 ∀j2 ∀v (Val(i, j1, v) ∧ Val(i, j2, v) ∧ j1 ≠ j2 => ⊥)")
-        self.axioms.append("A4: ∀i ∀j ∀v1 ∀v2 (LessH(i, j) ∧ Val(i, j, v1) ∧ Val(i, j+1, v2) => Less(v1, v2))")
-        self.axioms.append("A5: ∀i ∀j ∀v (Given(i, j, v) => Val(i, j, v))")
-        self.axioms.append("A6: ∀i ∀j ∀v1 ∀v2 (LessH(i, j) ∧ Val(i, j, v1) ∧ Val(i, j+1, v2) => Less(v1, v2))")
-        self.axioms.append("A7: ∀i ∀j ∀v1 ∀v2 (GreaterH(i, j) ∧ Val(i, j, v1) ∧ Val(i, j+1, v2) => Less(v2, v1))")
-        self.axioms.append("A8: ∀i ∀j ∀v1 ∀v2 (LessV(i, j) ∧ Val(i, j, v1) ∧ Val(i+1, j, v2) => Less(v1, v2))")
-        self.axioms.append("A9: ∀i ∀j ∀v1 ∀v2 (GreaterV(i, j) ∧ Val(i, j, v1) ∧ Val(i+1, j, v2) => Less(v2, v1))")
-        self.axioms.append(f"A10: ∀i ∀j ∀v (Val(i, j, v) => (v=1 ∨ v=2 ∨ ... ∨ v={self.n}))")
-
-    def get_full_kb(self):
-        self.generate_facts()
-        self.generate_axioms()
-        kb_text = "=== TẬP DỮ KIỆN (FACTS) ===\n"
-        kb_text += "\n".join(self.facts) if self.facts else "Không có dữ kiện."
-        kb_text += "\n\n=== TẬP TIÊN ĐỀ (AXIOMS) ===\n"
-        kb_text += "\n".join(self.axioms)
-        return kb_text
-
-class KnowledgeBase:
-    def __init__(self, n):
-        self.n = n
-        self.domains = [[set(range(1, n + 1)) for _ in range(n)] for _ in range(n)]
-        self.facts = [] 
-
-class ForwardChaining:
-    def __init__(self, kb, env):
-        self.kb = kb
-        self.env = env
-        self.n = env.n
-
-    def execute(self, agenda=None):
-        if agenda is None:
-            agenda = self.kb.facts.copy()
-            
-        while agenda:
-            r, c, val = agenda.pop(0)
-            
-            for i in range(self.n):
-                if i != r and val in self.kb.domains[i][c]:
-                    self.kb.domains[i][c].remove(val)
-                    if len(self.kb.domains[i][c]) == 1:
-                        agenda.append((i, c, list(self.kb.domains[i][c])[0]))
-                    elif len(self.kb.domains[i][c]) == 0:
-                        return False
-
-                if i != c and val in self.kb.domains[r][i]:
-                    self.kb.domains[r][i].remove(val)
-                    if len(self.kb.domains[r][i]) == 1:
-                        agenda.append((r, i, list(self.kb.domains[r][i])[0]))
-                    elif len(self.kb.domains[r][i]) == 0:
-                        return False
-
-            for constraint in self.env.constraints_list:
-                ctype, r1, c1, r2, c2 = constraint
+            for i in range(n):
+                if i != c1 and i != c2: queue.append(((r1, i), (r1, c1)))
+                if i != r1 and i != r2: queue.append(((i, c1), (r1, c1)))
                 
-                if r == r1 and c == c1:
-                    to_remove = [v2 for v2 in self.kb.domains[r2][c2] if (ctype == '<' and not (val < v2)) or (ctype == '>' and not (val > v2))]
-                    for v2 in to_remove:
-                        self.kb.domains[r2][c2].remove(v2)
-                        if len(self.kb.domains[r2][c2]) == 1:
-                            agenda.append((r2, c2, list(self.kb.domains[r2][c2])[0]))
-                        elif len(self.kb.domains[r2][c2]) == 0:
-                            return False
-
-                elif r == r2 and c == c2:
-                    to_remove = [v1 for v1 in self.kb.domains[r1][c1] if (ctype == '<' and not (v1 < val)) or (ctype == '>' and not (v1 > val))]
-                    for v1 in to_remove:
-                        self.kb.domains[r1][c1].remove(v1)
-                        if len(self.kb.domains[r1][c1]) == 1:
-                            agenda.append((r1, c1, list(self.kb.domains[r1][c1])[0]))
-                        elif len(self.kb.domains[r1][c1]) == 0:
-                            return False
-        return True
-
-def extract_grid(domains, n):
-    return [[list(domains[r][c])[0] for c in range(n)] for r in range(n)]
+    return True
 
 def heuristic_mac(domains, n):
-    unassigned_cells = 0
-    
+    """Heuristic đếm số ô còn trống dựa trên Domain size."""
+    unassigned = 0
     for r in range(n):
         for c in range(n):
             if len(domains[r][c]) == 0:
-                return float('inf') 
+                return float('inf') # Ngõ cụt
             elif len(domains[r][c]) > 1:
-                unassigned_cells += 1
-                
-    return unassigned_cells
+                unassigned += 1
+    return unassigned
 
 def get_state_tuple(domains):
+    """Chuyển mảng Domains thành Tuple để băm (Hash) vào tập visited."""
     return tuple(tuple(tuple(sorted(d)) for d in row) for row in domains)
 
-def solve_astar_mac_ac3(env):
-    initial_kb = KnowledgeBase(env.n)
-    for r in range(env.n):
-        for c in range(env.n):
-            if env.grid[r][c] != 0:
-                initial_kb.domains[r][c] = {env.grid[r][c]}
-                initial_kb.facts.append((r, c, env.grid[r][c]))
-                
-    fc_init = ForwardChaining(initial_kb, env)
-    if not fc_init.execute():
-        return None 
+def extract_grid(domains, n):
+    """Trích xuất mảng 2D kết quả khi mọi Domain chỉ còn 1 số."""
+    return [[list(domains[r][c])[0] for c in range(n)] for r in range(n)]
 
+def solve_astar_mac_ac3(env):
+    n = env.n
+    initial_domains = [[set(range(1, n + 1)) for _ in range(n)] for _ in range(n)]
+    
+    for r in range(n):
+        for c in range(n):
+            if env.grid[r][c] != 0:
+                initial_domains[r][c] = {env.grid[r][c]}
+                
+    if not true_ac3(initial_domains, env):
+        return None, 0
+        
     g_cost = 0
-    h_cost = heuristic_mac(initial_kb.domains, env.n)
+    h_cost = heuristic_mac(initial_domains, n)
     tie_breaker = 0
+    nodes_expanded = 0
     
     pq = []
-    heapq.heappush(pq, (g_cost + h_cost, -g_cost, tie_breaker, get_state_tuple(initial_kb.domains), initial_kb.domains))
+    heapq.heappush(pq, (g_cost + h_cost, -g_cost, tie_breaker, get_state_tuple(initial_domains), initial_domains))
     visited = set()
-
-    nodes_expanded = 0 
     
     while pq:
         f, neg_g, _, state_tup, current_domains = heapq.heappop(pq)
         nodes_expanded += 1
         g = -neg_g
         
-        if state_tup in visited:
-            continue
+        if state_tup in visited: continue
         visited.add(state_tup)
         
         best_r, best_c = -1, -1
-        min_options = env.n + 1
+        min_options = n + 1
         
-        for r in range(env.n):
-            for c in range(env.n):
+        for r in range(n):
+            for c in range(n):
                 opts = len(current_domains[r][c])
-                if opts > 1 and opts < min_options:
+                if 1 < opts < min_options:
                     min_options = opts
                     best_r, best_c = r, c
-
+                    
         if best_r == -1:
-            return extract_grid(current_domains, env.n), nodes_expanded
+            return extract_grid(current_domains, n), nodes_expanded
             
         for val in current_domains[best_r][best_c]:
-            next_kb = KnowledgeBase(env.n)
-            next_kb.domains = [ [set(d) for d in row] for row in current_domains ] 
+            next_domains = [[set(d) for d in row] for row in current_domains]
+            next_domains[best_r][best_c] = {val}
             
-            next_kb.domains[best_r][best_c] = {val}
-            agenda = [(best_r, best_c, val)]
-            
-            fc = ForwardChaining(next_kb, env)
-            is_valid_branch = fc.execute(agenda)
-            
-            if is_valid_branch:
-                new_state_tup = get_state_tuple(next_kb.domains)
+            queue = []
+            for i in range(n):
+                if i != best_c: queue.append(((best_r, i), (best_r, best_c)))
+                if i != best_r: queue.append(((i, best_c), (best_r, best_c)))
+                
+            if true_ac3(next_domains, env, initial_queue=queue):
+                new_state_tup = get_state_tuple(next_domains)
                 if new_state_tup not in visited:
                     new_g = g + 1
-                    new_h = heuristic_mac(next_kb.domains, env.n)
+                    new_h = heuristic_mac(next_domains, n)
                     tie_breaker += 1
-                    heapq.heappush(pq, (new_g + new_h, -new_g, tie_breaker, new_state_tup, next_kb.domains))
-
+                    heapq.heappush(pq, (new_g + new_h, -new_g, tie_breaker, new_state_tup, next_domains))
+                    
     return None, nodes_expanded
 
 def load_env_from_file(file_path):
-    with open(file_path, 'r') as f:
+    with open(file_path, 'r', encoding='utf-8') as f:
         lines = [line.strip() for line in f.readlines() if line.strip() and not line.startswith('#')]
     n = int(lines[0])
     env = FutoshikiEnv(n)
@@ -262,7 +201,6 @@ def print_solution(n, grid, env):
 
 def save_solution_to_file(output_path, n, grid, env):
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    
     with open(output_path, 'w', encoding='utf-8') as f:
         for i in range(n):
             row_str = ""
@@ -273,7 +211,6 @@ def save_solution_to_file(output_path, n, grid, env):
                     elif env.horiz_constraints[i][j] == -1: row_str += " > "
                     else: row_str += "   "
             f.write(row_str + "\n")
-            
             if i < n - 1:
                 v_str = ""
                 for j in range(n):
@@ -288,18 +225,13 @@ if __name__ == "__main__":
     file_name = os.path.basename(input_file).replace("input", "output")
     output_file = os.path.join("Outputs", file_name)
 
-    print(f"BƯỚC 1: Đọc dữ liệu từ {input_file} vào Môi trường (FutoshikiEnv)...")
     try:
         env = load_env_from_file(input_file)
     except FileNotFoundError:
         print("Lỗi: Không tìm thấy file!")
         exit()
 
-    print("\nBƯỚC 2: Gọi KBGenerator dịch môi trường sang Logic (Dành cho Báo cáo)...")
-    kb_gen = KBGenerator(env)
-    print(kb_gen.get_full_kb())
-
-    print(f"\nBƯỚC 3: Giải Futoshiki {env.n}x{env.n} bằng thuật toán A* tích hợp Forward Chaining...")
+    print(f"--- Đang giải Futoshiki {env.n}x{env.n} bằng A* kết hợp TRUE MAC (AC-3 chuẩn) ---")
     start_time = time.time()
     
     solution_grid, nodes_expanded = solve_astar_mac_ac3(env)

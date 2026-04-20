@@ -4,28 +4,6 @@ import copy
 import os
 from futoshiki_env import FutoshikiEnv
 
-"""
-A* + FORWARD CHAINING WITH MRC (MINIMUM REMAINING CONSTRAINTS)
-=============================================================
-
-Combines A* with Forward Chaining and MRC heuristic.
-
-Heuristic: h(s) = Sum of unmet constraint pairs with FC propagation
-
-ADMISSIBILITY ANALYSIS:
-- MRC counts constraints that still need to be verified
-- Forward chaining eliminates impossible branches early
-- h(s) ≤ actual remaining constraint work
-- MRC + FC is particularly effective on constraint-heavy puzzles
-- CONCLUSION: This heuristic is ADMISSIBLE
-
-EFFICIENCY:
-- Fastest among all variants (O(n²) heuristic computation)
-- Forward chaining still provides good pruning
-- Excellent for puzzles with many inequality constraints
-- Very practical approach with minimal overhead
-"""
-
 file_path = "Inputs/input-09.txt"
 
 class KBGenerator:
