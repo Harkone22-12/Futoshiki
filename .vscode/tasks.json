@@ -1,0 +1,10 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Generate Comprehensive Benchmark Analysis",
+			"type": "shell",
+			"command": ".venv/Scripts/python.exe -c \"import pandas as pd; import numpy as np; df = pd.read_csv('Source/Benchmarks/benchmark_results_full.csv'); print('\\n' + '='*120); print('📊 FUTOSHIKI BENCHMARK COMPREHENSIVE ANALYSIS'); print('='*120); print(f'\\n✅ Total Test Cases: {len(df)} across {df[\\\"Size\\\"].nunique()} grid sizes'); print(f'\\n🔍 Grid Size Distribution:'); sizes = df['Size'].value_counts().sort_index(); [print(f'   {size}: {count} cases') for size, count in sizes.items()]; alg_cols = [c for c in df.columns if '(s)' in c]; print(f'\\n🎯 Total Algorithms Tested: {len(alg_cols)}'); for col in alg_cols: print(f'   • {col.replace(\\\" (s)\\\", \\\"\\\")}'); print('\\n' + '='*120); print('⚡ ALGORITHM PERFORMANCE RANKING (By Success Rate)'); print('='*120); perf = {}; [perf.update({col.replace(\\\" (s)\\\", \\\"\\\"): len(pd.to_numeric(df[col], errors='coerce').dropna())}) for col in alg_cols]; sorted_algs = sorted(perf.items(), key=lambda x: x[1], reverse=True); print(f'{\\\"Algorithm\\\":<25} {\\\"Success Rate\\\":>20} {\\\"Avg Time (s)\\\":>20} {\\\"Avg Memory (MB)\\\":>15}'); print('-'*120); [print(f'{name:<25} {count}/10 ({count*10}%) {\\\"\":>13} {np.mean([x for x in pd.to_numeric(df[name+\\\" (s)\\\"], errors='coerce').dropna() if x != \\\"Timeout\\\"]):.4f}s {\\\"\":>12} {np.mean([x for x in pd.to_numeric(df[name+\\\" (MB)\\\"], errors='coerce').dropna() if x != \\\"N/A\\\"]):.2f}MB') for name, count in sorted_algs]; print('\\n' + '='*120)\" 2>&1"
+		}
+	]
+}
