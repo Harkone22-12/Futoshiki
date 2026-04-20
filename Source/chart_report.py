@@ -661,7 +661,7 @@ class ChartReportController:
             label_max_len=14,
         )
 
-        status_order = ["solved", "failed", "timeout", "error", "unknown"]
+        status_order = ["solved", "failed", "timeout", "skipped", "error", "unknown"]
         status_parts = []
         for key in status_order:
             count = status_totals.get(key, 0)
